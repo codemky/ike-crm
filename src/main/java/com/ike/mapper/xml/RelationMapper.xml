@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.RelationMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.Relation" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="customer_id" property="customerId" jdbcType="BIGINT" />
+    <result column="relation_name" property="relationName" jdbcType="VARCHAR" />
+    <result column="relation_sex" property="relationSex" jdbcType="BIT" />
+    <result column="relation_position" property="relationPosition" jdbcType="VARCHAR" />
+    <result column="relation_call" property="relationCall" jdbcType="VARCHAR" />
+    <result column="relation_phone" property="relationPhone" jdbcType="VARCHAR" />
+    <result column="relation_email" property="relationEmail" jdbcType="VARCHAR" />
+    <result column="relation_primary" property="relationPrimary" jdbcType="TINYINT" />
+    <result column="landline_number" property="landlineNumber" jdbcType="VARCHAR" />
+    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, customer_id, relation_name, relation_sex, relation_position, relation_call, relation_phone, 
+    relation_email, relation_primary, landline_number, create_user_id, create_time, modify_user_id, 
+    modify_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.ike.pojo.RelationExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from relation
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from relation
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from relation
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ike.pojo.RelationExample" >
+    delete from relation
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ike.pojo.Relation" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into relation (customer_id, relation_name, relation_sex, 
+      relation_position, relation_call, relation_phone, 
+      relation_email, relation_primary, landline_number, 
+      create_user_id, create_time, modify_user_id, 
+      modify_time)
+    values (#{customerId,jdbcType=BIGINT}, #{relationName,jdbcType=VARCHAR}, #{relationSex,jdbcType=BIT}, 
+      #{relationPosition,jdbcType=VARCHAR}, #{relationCall,jdbcType=VARCHAR}, #{relationPhone,jdbcType=VARCHAR}, 
+      #{relationEmail,jdbcType=VARCHAR}, #{relationPrimary,jdbcType=TINYINT}, #{landlineNumber,jdbcType=VARCHAR}, 
+      #{createUserId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{modifyUserId,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ike.pojo.Relation" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into relation
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="customerId != null" >
+        customer_id,
+      </if>
+      <if test="relationName != null" >
+        relation_name,
+      </if>
+      <if test="relationSex != null" >
+        relation_sex,
+      </if>
+      <if test="relationPosition != null" >
+        relation_position,
+      </if>
+      <if test="relationCall != null" >
+        relation_call,
+      </if>
+      <if test="relationPhone != null" >
+        relation_phone,
+      </if>
+      <if test="relationEmail != null" >
+        relation_email,
+      </if>
+      <if test="relationPrimary != null" >
+        relation_primary,
+      </if>
+      <if test="landlineNumber != null" >
+        landline_number,
+      </if>
+      <if test="createUserId != null" >
+        create_user_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="customerId != null" >
+        #{customerId,jdbcType=BIGINT},
+      </if>
+      <if test="relationName != null" >
+        #{relationName,jdbcType=VARCHAR},
+      </if>
+      <if test="relationSex != null" >
+        #{relationSex,jdbcType=BIT},
+      </if>
+      <if test="relationPosition != null" >
+        #{relationPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="relationCall != null" >
+        #{relationCall,jdbcType=VARCHAR},
+      </if>
+      <if test="relationPhone != null" >
+        #{relationPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="relationEmail != null" >
+        #{relationEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="relationPrimary != null" >
+        #{relationPrimary,jdbcType=TINYINT},
+      </if>
+      <if test="landlineNumber != null" >
+        #{landlineNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null" >
+        #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ike.pojo.RelationExample" resultType="java.lang.Integer" >
+    select count(*) from relation
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update relation
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerId != null" >
+        customer_id = #{record.customerId,jdbcType=BIGINT},
+      </if>
+      <if test="record.relationName != null" >
+        relation_name = #{record.relationName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.relationSex != null" >
+        relation_sex = #{record.relationSex,jdbcType=BIT},
+      </if>
+      <if test="record.relationPosition != null" >
+        relation_position = #{record.relationPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.relationCall != null" >
+        relation_call = #{record.relationCall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.relationPhone != null" >
+        relation_phone = #{record.relationPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.relationEmail != null" >
+        relation_email = #{record.relationEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.relationPrimary != null" >
+        relation_primary = #{record.relationPrimary,jdbcType=TINYINT},
+      </if>
+      <if test="record.landlineNumber != null" >
+        landline_number = #{record.landlineNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createUserId != null" >
+        create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.modifyUserId != null" >
+        modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update relation
+    set id = #{record.id,jdbcType=BIGINT},
+      customer_id = #{record.customerId,jdbcType=BIGINT},
+      relation_name = #{record.relationName,jdbcType=VARCHAR},
+      relation_sex = #{record.relationSex,jdbcType=BIT},
+      relation_position = #{record.relationPosition,jdbcType=VARCHAR},
+      relation_call = #{record.relationCall,jdbcType=VARCHAR},
+      relation_phone = #{record.relationPhone,jdbcType=VARCHAR},
+      relation_email = #{record.relationEmail,jdbcType=VARCHAR},
+      relation_primary = #{record.relationPrimary,jdbcType=TINYINT},
+      landline_number = #{record.landlineNumber,jdbcType=VARCHAR},
+      create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ike.pojo.Relation" >
+    update relation
+    <set >
+      <if test="customerId != null" >
+        customer_id = #{customerId,jdbcType=BIGINT},
+      </if>
+      <if test="relationName != null" >
+        relation_name = #{relationName,jdbcType=VARCHAR},
+      </if>
+      <if test="relationSex != null" >
+        relation_sex = #{relationSex,jdbcType=BIT},
+      </if>
+      <if test="relationPosition != null" >
+        relation_position = #{relationPosition,jdbcType=VARCHAR},
+      </if>
+      <if test="relationCall != null" >
+        relation_call = #{relationCall,jdbcType=VARCHAR},
+      </if>
+      <if test="relationPhone != null" >
+        relation_phone = #{relationPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="relationEmail != null" >
+        relation_email = #{relationEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="relationPrimary != null" >
+        relation_primary = #{relationPrimary,jdbcType=TINYINT},
+      </if>
+      <if test="landlineNumber != null" >
+        landline_number = #{landlineNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null" >
+        create_user_id = #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ike.pojo.Relation" >
+    update relation
+    set customer_id = #{customerId,jdbcType=BIGINT},
+      relation_name = #{relationName,jdbcType=VARCHAR},
+      relation_sex = #{relationSex,jdbcType=BIT},
+      relation_position = #{relationPosition,jdbcType=VARCHAR},
+      relation_call = #{relationCall,jdbcType=VARCHAR},
+      relation_phone = #{relationPhone,jdbcType=VARCHAR},
+      relation_email = #{relationEmail,jdbcType=VARCHAR},
+      relation_primary = #{relationPrimary,jdbcType=TINYINT},
+      landline_number = #{landlineNumber,jdbcType=VARCHAR},
+      create_user_id = #{createUserId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

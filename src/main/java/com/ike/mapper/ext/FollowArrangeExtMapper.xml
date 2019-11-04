@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.FollowArrangeExtMapper">
+
+    <resultMap id="FollowArrangeVo" type="com.ike.pojo.vo.FollowArrangeVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="arrange_id" property="arrangeId" jdbcType="BIGINT"/>
+        <result column="charge_id" property="chargeId" jdbcType="BIGINT"/>
+        <result column="relation_id" property="relationId" jdbcType="BIGINT"/>
+        <result column="follow_id" property="followId" jdbcType="BIGINT"/>
+        <result column="arrange_content" property="arrangeContent" jdbcType="VARCHAR"/>
+        <result column="isread" property="isread" jdbcType="TINYINT"/>
+        <result column="iscomplete" property="iscomplete" jdbcType="TINYINT"/>
+        <result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="execute_time" property="executeTime" jdbcType="TIMESTAMP"/>
+        <result column="u1_name" property="arrangeName" jdbcType="TIMESTAMP"/>
+        <result column="u2_name" property="chargeName" jdbcType="TIMESTAMP"/>
+        <result column="c_name" property="customerName" jdbcType="TIMESTAMP"/>
+        <result column="r_name" property="relationName" jdbcType="TIMESTAMP"/>
+        <result column="create_name" property="createName"/>
+        <result column="modify_name" property="modifyName"/>
+        <result column="c_id" property="customerId"/>
+
+
+    </resultMap>
+
+    <select id="selectByCriteria" resultMap="FollowArrangeVo">
+        select fa.*,
+        c.id c_id,
+        c.customer_name c_name,
+        r.relation_name r_name,
+        u1.name u1_name,
+        u2.name u2_name,
+        u3.name create_name,
+        u4.name modify_name
+
+        from (follow_arrange fa,
+        customer c,
+        relation r)
+        left join user u1 on u1.id = fa.arrange_id
+        left join user u2 on u2.id = fa.charge_id
+        left join user u3 on u3.id = fa.create_user_id
+        left join user u4 on u4.id = fa.modify_user_id
+
+        where
+        fa.relation_id = r.id
+        and r.customer_id = c.id
+        <if test="criteria.id != null ">
+            and fa.id = #{criteria.id}
+        </if>
+        <if test="criteria.arrangeId != null ">
+            and fa.arrange_id = #{criteria.arrangeId}
+        </if>
+        <if test="criteria.chargeId != null ">
+            and fa.charge_id = #{criteria.chargeId}
+        </if>
+        <if test="criteria.customerId != null ">
+            and c.id = #{criteria.customerId}
+        </if>
+        <if test="criteria.relationId != null ">
+            and r.id = #{criteria.relationId}
+        </if>
+        <if test="criteria.minDate != null and criteria.maxDate != null">
+            and fa.create_time between #{criteria.minDate} and #{criteria.maxDate}
+        </if>
+        <if test="criteria.isComplete != null ">
+            and fa.iscomplete = 1
+        </if>
+        <if test="criteria.notComplete != null ">
+            and fa.iscomplete = 0
+        </if>
+        <if test="criteria.notExecute != null ">
+            and fa.iscomplete is null
+        </if>
+        <if test="criteria.isRead != null ">
+            and fa.isread = 0
+        </if>
+        <if test="criteria.notRead != null ">
+            and fa.isread is null
+        </if>
+        <if test="criteria.arrangeName != null">
+            and u1.name like #{criteria.arrangeName}
+        </if>
+        <if test="criteria.chargeName != null">
+            and u2.name like #{criteria.chargeName}
+        </if>
+        <if test="criteria.customerName != null">
+            and c.customer_name like #{criteria.customerName}
+        </if>
+        <if test="criteria.relationName != null">
+            and r.relation_name like #{criteria.relationName}
+        </if>
+        <if test="criteria.relationPhone != null">
+            and r.relation_phone like #{criteria.relationPhone}
+        </if>
+
+        order by ${criteria.sortName} ${criteria.sortType}
+    </select>
+
+    <select id="selectCustomerArrangeCount" resultType="java.lang.Long">
+        select count(distinct fa.id)
+        from customer c
+            left join relation r on c.id = r.customer_id
+            left join follow_arrange fa on r.id = fa.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+
+</mapper>

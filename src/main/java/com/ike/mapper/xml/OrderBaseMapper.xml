@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.OrderBaseMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.OrderBase" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="employee_id" property="employeeId" jdbcType="BIGINT" />
+    <result column="relation_id" property="relationId" jdbcType="BIGINT" />
+    <result column="note" property="note" jdbcType="VARCHAR" />
+    <result column="order_total" property="orderTotal" jdbcType="DOUBLE" />
+    <result column="return_plan_id" property="returnPlanId" jdbcType="BIGINT" />
+    <result column="order_actual_total" property="orderActualTotal" jdbcType="DOUBLE" />
+    <result column="order_cost" property="orderCost" jdbcType="DOUBLE" />
+    <result column="order_get_sum" property="orderGetSum" jdbcType="DOUBLE" />
+    <result column="order_time" property="orderTime" jdbcType="TIMESTAMP" />
+    <result column="payment_method" property="paymentMethod" jdbcType="VARCHAR" />
+    <result column="order_state" property="orderState" jdbcType="TINYINT" />
+    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, employee_id, relation_id, note, order_total, return_plan_id, order_actual_total, 
+    order_cost, order_get_sum, order_time, payment_method, order_state, create_user_id, 
+    create_time, modify_user_id, modify_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.ike.pojo.OrderBaseExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from order_base
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from order_base
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from order_base
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ike.pojo.OrderBaseExample" >
+    delete from order_base
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ike.pojo.OrderBase" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into order_base (employee_id, relation_id, note, 
+      order_total, return_plan_id, order_actual_total, 
+      order_cost, order_get_sum, order_time, 
+      payment_method, order_state, create_user_id, 
+      create_time, modify_user_id, modify_time
+      )
+    values (#{employeeId,jdbcType=BIGINT}, #{relationId,jdbcType=BIGINT}, #{note,jdbcType=VARCHAR}, 
+      #{orderTotal,jdbcType=DOUBLE}, #{returnPlanId,jdbcType=BIGINT}, #{orderActualTotal,jdbcType=DOUBLE}, 
+      #{orderCost,jdbcType=DOUBLE}, #{orderGetSum,jdbcType=DOUBLE}, #{orderTime,jdbcType=TIMESTAMP}, 
+      #{paymentMethod,jdbcType=VARCHAR}, #{orderState,jdbcType=TINYINT}, #{createUserId,jdbcType=BIGINT}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{modifyUserId,jdbcType=BIGINT}, #{modifyTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.ike.pojo.OrderBase" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into order_base
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="employeeId != null" >
+        employee_id,
+      </if>
+      <if test="relationId != null" >
+        relation_id,
+      </if>
+      <if test="note != null" >
+        note,
+      </if>
+      <if test="orderTotal != null" >
+        order_total,
+      </if>
+      <if test="returnPlanId != null" >
+        return_plan_id,
+      </if>
+      <if test="orderActualTotal != null" >
+        order_actual_total,
+      </if>
+      <if test="orderCost != null" >
+        order_cost,
+      </if>
+      <if test="orderGetSum != null" >
+        order_get_sum,
+      </if>
+      <if test="orderTime != null" >
+        order_time,
+      </if>
+      <if test="paymentMethod != null" >
+        payment_method,
+      </if>
+      <if test="orderState != null" >
+        order_state,
+      </if>
+      <if test="createUserId != null" >
+        create_user_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="employeeId != null" >
+        #{employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="relationId != null" >
+        #{relationId,jdbcType=BIGINT},
+      </if>
+      <if test="note != null" >
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="orderTotal != null" >
+        #{orderTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="returnPlanId != null" >
+        #{returnPlanId,jdbcType=BIGINT},
+      </if>
+      <if test="orderActualTotal != null" >
+        #{orderActualTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="orderCost != null" >
+        #{orderCost,jdbcType=DOUBLE},
+      </if>
+      <if test="orderGetSum != null" >
+        #{orderGetSum,jdbcType=DOUBLE},
+      </if>
+      <if test="orderTime != null" >
+        #{orderTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="paymentMethod != null" >
+        #{paymentMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="orderState != null" >
+        #{orderState,jdbcType=TINYINT},
+      </if>
+      <if test="createUserId != null" >
+        #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ike.pojo.OrderBaseExample" resultType="java.lang.Integer" >
+    select count(*) from order_base
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update order_base
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.employeeId != null" >
+        employee_id = #{record.employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.relationId != null" >
+        relation_id = #{record.relationId,jdbcType=BIGINT},
+      </if>
+      <if test="record.note != null" >
+        note = #{record.note,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderTotal != null" >
+        order_total = #{record.orderTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="record.returnPlanId != null" >
+        return_plan_id = #{record.returnPlanId,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderActualTotal != null" >
+        order_actual_total = #{record.orderActualTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="record.orderCost != null" >
+        order_cost = #{record.orderCost,jdbcType=DOUBLE},
+      </if>
+      <if test="record.orderGetSum != null" >
+        order_get_sum = #{record.orderGetSum,jdbcType=DOUBLE},
+      </if>
+      <if test="record.orderTime != null" >
+        order_time = #{record.orderTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.paymentMethod != null" >
+        payment_method = #{record.paymentMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderState != null" >
+        order_state = #{record.orderState,jdbcType=TINYINT},
+      </if>
+      <if test="record.createUserId != null" >
+        create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.modifyUserId != null" >
+        modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update order_base
+    set id = #{record.id,jdbcType=BIGINT},
+      employee_id = #{record.employeeId,jdbcType=BIGINT},
+      relation_id = #{record.relationId,jdbcType=BIGINT},
+      note = #{record.note,jdbcType=VARCHAR},
+      order_total = #{record.orderTotal,jdbcType=DOUBLE},
+      return_plan_id = #{record.returnPlanId,jdbcType=BIGINT},
+      order_actual_total = #{record.orderActualTotal,jdbcType=DOUBLE},
+      order_cost = #{record.orderCost,jdbcType=DOUBLE},
+      order_get_sum = #{record.orderGetSum,jdbcType=DOUBLE},
+      order_time = #{record.orderTime,jdbcType=TIMESTAMP},
+      payment_method = #{record.paymentMethod,jdbcType=VARCHAR},
+      order_state = #{record.orderState,jdbcType=TINYINT},
+      create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ike.pojo.OrderBase" >
+    update order_base
+    <set >
+      <if test="employeeId != null" >
+        employee_id = #{employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="relationId != null" >
+        relation_id = #{relationId,jdbcType=BIGINT},
+      </if>
+      <if test="note != null" >
+        note = #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="orderTotal != null" >
+        order_total = #{orderTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="returnPlanId != null" >
+        return_plan_id = #{returnPlanId,jdbcType=BIGINT},
+      </if>
+      <if test="orderActualTotal != null" >
+        order_actual_total = #{orderActualTotal,jdbcType=DOUBLE},
+      </if>
+      <if test="orderCost != null" >
+        order_cost = #{orderCost,jdbcType=DOUBLE},
+      </if>
+      <if test="orderGetSum != null" >
+        order_get_sum = #{orderGetSum,jdbcType=DOUBLE},
+      </if>
+      <if test="orderTime != null" >
+        order_time = #{orderTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="paymentMethod != null" >
+        payment_method = #{paymentMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="orderState != null" >
+        order_state = #{orderState,jdbcType=TINYINT},
+      </if>
+      <if test="createUserId != null" >
+        create_user_id = #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ike.pojo.OrderBase" >
+    update order_base
+    set employee_id = #{employeeId,jdbcType=BIGINT},
+      relation_id = #{relationId,jdbcType=BIGINT},
+      note = #{note,jdbcType=VARCHAR},
+      order_total = #{orderTotal,jdbcType=DOUBLE},
+      return_plan_id = #{returnPlanId,jdbcType=BIGINT},
+      order_actual_total = #{orderActualTotal,jdbcType=DOUBLE},
+      order_cost = #{orderCost,jdbcType=DOUBLE},
+      order_get_sum = #{orderGetSum,jdbcType=DOUBLE},
+      order_time = #{orderTime,jdbcType=TIMESTAMP},
+      payment_method = #{paymentMethod,jdbcType=VARCHAR},
+      order_state = #{orderState,jdbcType=TINYINT},
+      create_user_id = #{createUserId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.ProductExtMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.Product" >
+      <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="product_class_id" property="productClassId" jdbcType="BIGINT" />
+    <result column="sale_unit_id" property="saleUnitId" jdbcType="BIGINT" />
+    <result column="on_sale" property="onSale" jdbcType="TINYINT" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="product_type" property="productType" jdbcType="VARCHAR" />
+    <result column="sale_price" property="salePrice" jdbcType="DOUBLE" />
+    <result column="cost" property="cost" jdbcType="DOUBLE" />
+    <result column="ttm" property="ttm" jdbcType="TIMESTAMP" />
+    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+    <insert id="insertList" parameterType="com.ike.pojo.vo.ProductExtVO">
+        insert into Product(
+        product_name,
+        product_type,
+        sale_price,
+        cost,
+        sale_unit_id,
+        on_sale,
+        product_class_id,
+        ttm,
+        introduction,
+        create_user_id,
+        create_time
+        )
+        VALUES
+        <foreach collection="products" index="index" item="item" separator=",">
+            ( trim(#{item.productName}),trim(#{item.productType}),#{item.salePrice},#{item.cost},#{item.saleUnitId},
+            #{item.onSale},#{item.productClassId},#{item.ttm},#{item.introduction},#{item.createUserId},
+            #{item.createTime})
+        </foreach>
+
+    </insert>
+
+    <select id="listAllByPage" resultType="com.ike.pojo.vo.ProductVO">
+    select CONCAT(p.product_name,IFNULL(p.product_type,'')) as product_name,
+           p.id,
+           p.create_user_id,
+           p.on_sale,
+           sum(op.order_count) as order_num,
+           sum(op.order_count * p.cost) as order_cost,
+           sum(op.actual_price) as order_count,
+           sum(op.actual_price - op.order_count * p.cost) as order_profit,
+           count(ob.id) as order_times,
+           u.username as create_user_name,
+           p.create_time
+      from product p
+      left join order_product op
+      on p.id = op.product_id
+      left join order_base ob
+      on op.order_base_id = ob.id
+      left join relation r
+      on ob.relation_id = r.id
+      left join `user` u
+      on p.create_user_id = u.id
+      where p.deleted = 0
+      GROUP BY CONCAT(p.product_name,IFNULL(p.product_type,''))
+    </select>
+
+    <select id="listAllBySelectByPage" resultType="com.ike.pojo.vo.ProductVO">
+        select *
+        from(
+        select CONCAT(p.product_name,IFNULL(p.product_type,'')) as product_name,
+                   p.on_sale,
+                   sum(op.order_count) as order_num,
+                   sum(op.order_count * p.cost) as order_cost,
+                   sum(op.actual_price) as order_count,
+                   sum(op.actual_price - op.order_count * p.cost) as order_profit,
+                   count(ob.id) as order_times,
+                   u.username as create_user_name,
+        p.create_time,
+        p.id,
+        p.create_user_id
+              from product p
+              left join order_product op
+              on p.id = op.product_id
+              left join order_base ob
+              on op.order_base_id = ob.id
+              left join relation r
+              on ob.relation_id = r.id
+              left join `user` u
+              on p.create_user_id = u.id
+              where p.deleted = 0
+                  <if test="searchVO.productClassId != null">
+                      and p.product_class_id = #{searchVO.productClassId}
+                  </if>
+                  <if test="searchVO.productName != null">
+                      and p.product_name LIKE '%#{searchVO.productName}%'
+                  </if>
+                  <if test="searchVO.salePriceMin != null and searchVO.salePriceMax != null">
+                      and p.sale_price BETWEEN #{searchVO.salePriceMin} and #{searchVO.salePriceMax}
+                  </if>
+                  <if test="searchVO.costMin != null and searchVO.costMax != null">
+                      and p.cost BETWEEN #{searchVO.costMin} and #{searchVO.costMax}
+                  </if>
+                  <if test="searchVO.onSale != null">
+                      and p.on_sale = #{searchVO.onSale}
+                  </if>
+        <if test="searchVO.beginTtm != null and searchVO.endTtm != null">
+            and p.ttm BETWEEN #{searchVO.beginTtm} and #{searchVO.endTtm}
+        </if>
+                  <if test="searchVO.saleUnitId != null">
+                      and p.sale_unit_id in
+                      <foreach collection="searchVO.saleUnitId" item="item" index="index" open="(" separator="," close=")">
+                        #{item}
+                      </foreach>
+                  </if>
+              GROUP BY CONCAT(p.product_name,IFNULL(p.product_type,''))
+        )t
+        <where>
+            <if test="searchVO.beginCreateTime != null and searchVO.endCreateTime != null">
+              t.create_time between #{searchVO.beginCreateTime} and #{searchVO.endCreateTime}
+            </if>
+            <if test="searchVO.orderNumMin != null and searchVO.orderNumMax != null">
+              and t.order_num between #{searchVO.orderNumMin} and #{searchVO.orderNumMax}
+            </if>
+            <if test="searchVO.orderTimesMin != null and searchVO.orderTimesMax != null">
+              and t.order_times between #{searchVO.orderTimesMin} and #{searchVO.orderTimesMax}
+            </if>
+            <if test="searchVO.orderCountMin != null and searchVO.orderCountMax != null">
+              and t.order_count between #{searchVO.orderCountMin} and #{searchVO.orderCountMax}
+            </if>
+            <if test="searchVO.orderProfitMin != null and searchVO.orderProfitMax != null">
+              and t.order_profit between #{searchVO.orderProfitMin} and #{searchVO.orderProfitMax}
+            </if>
+            <if test="searchVO.createUserName != null">
+              and t.create_user_name = #{searchVO.createUserName}
+            </if>
+            <if test="searchVO.isSold == 0">
+                and order_times = 0
+            </if>
+            <if test="searchVO.isSold == 1">
+                and order_times > 0
+            </if>
+        </where>
+        <if test="searchVO.sortName != null and searchVO.sortType != null">
+            ORDER BY ${searchVO.sortName} ${searchVO.sortType}
+        </if>
+    </select>
+
+    <select id="listDetailById" parameterType="Long" resultType="com.ike.pojo.vo.ProductVO">
+      select CONCAT(p.product_name,IFNULL(p.product_type,'')) as product_name,
+           p.on_sale,
+           sum(op.order_count) as order_num,
+           sum(op.order_count * p.cost) as order_cost,
+           sum(op.actual_price) as order_count,
+           sum(op.actual_price - op.order_count * p.cost) as order_profit,
+           count(ob.id) as order_times,
+           u.username as create_user_name,
+           p.create_time
+      from product p
+      left join order_product op
+      on p.id = op.product_id
+      left join order_base ob
+      on op.order_base_id = ob.id
+      left join relation r
+      on ob.relation_id = r.id
+      left join `user` u
+      on p.create_user_id = u.id
+      where p.id = #{id}
+      GROUP BY CONCAT(p.product_name,IFNULL(p.product_type,''))
+    </select>
+
+    <select id="selectCustomerTimes" parameterType="Long" resultType="com.ike.pojo.vo.ProductVO">
+      select COUNT(t.ctimes) as customer_times
+        from (
+            select COUNT(DISTINCT c.id) as ctimes
+            from product p
+            join order_product op
+            on op.product_id = p.id
+            join order_base ob
+            on ob.id = op.order_base_id
+            join relation r
+            on r.id = ob.relation_id
+            join customer c
+            on c.id = r.customer_id
+            where p.id = #{id}
+            GROUP BY c.id
+        )t
+    </select>
+
+    <select id="selectByYear" resultType="com.ike.pojo.vo.ProStatisticVO">
+        SELECT
+            t.y AS date,
+            SUM( t.ctimes ) AS customer_times,
+            SUM( order_num ) AS order_num,
+            SUM( order_count ) AS order_count
+        FROM
+            (
+        SELECT
+        COUNT( DISTINCT c.id ) AS ctimes,
+            sum( op.order_count ) AS order_num,
+            sum( op.actual_price ) AS order_count,
+            YEAR ( op.create_time ) AS y,
+            c.id,
+        CONCAT(p.product_name,IFNULL(p.product_type,'')) as productName
+        FROM
+            product p
+            JOIN order_product op ON op.product_id = p.id
+            JOIN order_base ob ON ob.id = op.order_base_id
+            JOIN relation r ON r.id = ob.relation_id
+            JOIN customer c ON c.id = r.customer_id
+        WHERE
+            p.deleted = 0
+            <if test="id != null">
+              and p.id = #{id}
+            </if>
+        GROUP BY
+            c.id, productName
+            ) t
+        GROUP BY
+            t.y, t.productName
+    </select>
+
+    <select id="selectMonByYear" resultType="com.ike.pojo.vo.ProStatisticVO">
+        SELECT
+            a.date as date,
+            IFNULL( b.customer_times, 0 ) as customer_times,
+            IFNULL( b.order_num, 0 ) as order_num,
+            IFNULL( order_count, 0 ) as order_count
+        FROM
+            (
+        SELECT
+            '01' AS date UNION
+        SELECT
+            '02' AS date UNION
+        SELECT
+            '03' AS date UNION
+        SELECT
+            '04' AS date UNION
+        SELECT
+            '05' AS date UNION
+        SELECT
+            '06' AS date UNION
+        SELECT
+            '07' AS date UNION
+        SELECT
+            '08' AS date UNION
+        SELECT
+            '09' AS date UNION
+        SELECT
+            '10' AS date UNION
+        SELECT
+            '11' AS date UNION
+        SELECT
+            '12' AS date
+            ) a
+            LEFT JOIN (
+        SELECT
+            SUM( t.ctimes ) AS customer_times,
+            SUM( order_num ) AS order_num,
+            SUM( order_count ) AS order_count,
+            t.date AS dates
+        FROM
+            (
+        SELECT
+            COUNT( DISTINCT c.id ) AS ctimes,
+            sum( op.order_count ) AS order_num,
+            sum( op.actual_price ) AS order_count,
+            MONTH ( op.create_time ) AS date,
+            c.id
+        FROM
+            product p
+            JOIN order_product op ON op.product_id = p.id
+            JOIN order_base ob ON ob.id = op.order_base_id
+            JOIN relation r ON r.id = ob.relation_id
+            JOIN customer c ON c.id = r.customer_id
+        WHERE
+            p.id = #{id} and p.deleted = 0
+            AND YEAR ( op.create_time ) = #{year}
+        GROUP BY
+            c.id
+            ) t GROUP BY t.date
+            ) b ON a.date = b.dates
+        ORDER BY
+            a.date
+    </select>
+
+    <select id="selectDayByMon" resultType="com.ike.pojo.vo.ProStatisticVO">
+        SELECT
+            a.date,
+            IFNULL( b.customer_times, 0 ) as customer_times,
+            IFNULL( b.order_num, 0 ) as order_num,
+            IFNULL( order_count, 0 ) as order_count
+        FROM
+            (
+            SELECT
+                '01' AS date UNION
+            SELECT
+                '02' AS date UNION
+            SELECT
+                '03' AS date UNION
+            SELECT
+                '04' AS date UNION
+            SELECT
+                '05' AS date UNION
+            SELECT
+                '06' AS date UNION
+            SELECT
+                '07' AS date UNION
+            SELECT
+                '08' AS date UNION
+            SELECT
+                '09' AS date UNION
+            SELECT
+                '10' AS date UNION
+            SELECT
+                '11' AS date UNION
+            SELECT
+                '12' AS date UNION
+            SELECT
+                '13' AS date UNION
+            SELECT
+                '14' AS date UNION
+            SELECT
+                '15' AS date UNION
+            SELECT
+                '16' AS date UNION
+            SELECT
+                '17' AS date UNION
+            SELECT
+                '18' AS date UNION
+            SELECT
+                '19' AS date UNION
+            SELECT
+                '20' AS date UNION
+            SELECT
+                '21' AS date UNION
+            SELECT
+                '22' AS date UNION
+            SELECT
+                '23' AS date UNION
+            SELECT
+                '24' AS date UNION
+            SELECT
+                '25' AS date UNION
+            SELECT
+                '26' AS date UNION
+            SELECT
+                '27' AS date UNION
+            SELECT
+                '28' AS date UNION
+            SELECT
+                '29' AS date UNION
+            SELECT
+                '30' AS date UNION
+            SELECT
+                '31' AS date
+                ) a
+        LEFT JOIN (
+            SELECT
+                SUM( t.ctimes ) AS customer_times,
+                SUM( order_num ) AS order_num,
+                SUM( order_count ) AS order_count,
+                t.date AS dates
+            FROM
+                (
+            SELECT
+                COUNT( DISTINCT c.id ) AS ctimes,
+                sum( op.order_count ) AS order_num,
+                sum( op.actual_price ) AS order_count,
+                DAY( op.create_time ) AS date,
+                c.id
+            FROM
+                product p
+                JOIN order_product op ON op.product_id = p.id
+                JOIN order_base ob ON ob.id = op.order_base_id
+                JOIN relation r ON r.id = ob.relation_id
+                JOIN customer c ON c.id = r.customer_id
+            WHERE
+                p.id = #{id} and p.deleted = 0
+                AND Year( op.create_time ) = #{year} and MONTH( op.create_time ) = #{month}
+            GROUP BY
+                c.id
+                ) t GROUP BY t.date
+        ) b ON a.date = b.dates
+        ORDER BY
+            a.date
+    </select>
+
+    <select id="listTradedProduct" parameterType="Long" resultType="com.ike.pojo.vo.TradedProductVO">
+        select ob.order_time,ob.order_cost,ob.order_actual_total,ob.note,p.sale_price,op.order_count
+            from order_base ob
+            join order_product op
+            on ob.id = op.order_base_id
+            join product p
+            on op.product_id = p.id
+              where p.id = #{id}
+    </select>
+
+    <select id="getExcelList" resultType="com.ike.pojo.vo.ProductExtVO">
+        SELECT
+            product_name,
+            product_type,
+            sale_price,
+            cost,
+            su.sale_unit_name as sale_unit_name,
+            on_sale,
+            pc.class_name as product_class_name,
+            ttm,
+            introduction
+        FROM product p
+        left join sale_unit su on p.sale_unit_id = su.id
+        left join product_class pc on p.product_class_id = pc.id
+    </select>
+
+    <select id="selectByNameAndType" resultType="com.ike.pojo.Product">
+        select * from Product
+        where product_name = trim(#{name}) and product_type = trim(#{type}) and deleted = 0
+    </select>
+
+    <update id="updateByDel" parameterType="Long">
+        update product
+          set deleted = 1
+        where id in
+        <foreach collection="ids" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateOnSale">
+        update product
+        set on_sale = #{onSale}
+    </update>
+
+</mapper>

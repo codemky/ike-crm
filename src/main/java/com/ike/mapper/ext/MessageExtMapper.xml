@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.MessageExtMapper" >
+
+
+    <select id="selAllByCurUserId" resultType="com.ike.pojo.vo.MessageVo" parameterType="long">
+        select msg.*, f.username fromWhoName, t.username toWhoName
+        from message msg, user f, user t
+        where msg.from_id = f.id
+        and t.id = #{curUserId}
+        order by msg.send_time
+    </select>
+
+    <select id="selUnReadByCurUserId" resultType="com.ike.pojo.vo.MessageVo" parameterType="long">
+        select msg.*, f.username fromWhoName, t.username toWhoName
+        from message msg, user f, user t
+        where msg.from_id = f.id
+        and t.id = #{curUserId}
+        and msg.readed = 0
+        order by msg.send_time
+    </select>
+
+    <select id="selIsReadByCurUserId" resultType="com.ike.pojo.vo.MessageVo" parameterType="long">
+        select msg.*, f.username fromWhoName, t.username toWhoName
+        from message msg, user f, user t
+        where msg.from_id = f.id
+        and t.id = #{curUserId}
+        and msg.readed = 1
+        order by msg.send_time
+    </select>
+
+</mapper>

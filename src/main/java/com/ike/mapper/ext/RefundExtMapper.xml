@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.RefundExtMapper">
+    <sql id="search">
+        SELECT
+            r.id AS id,
+            r.relation_id AS relationId,
+            r.employee_id AS employeeId,
+            r.order_base_id AS orderBaseId,
+            r.refund_date              AS refundDate,
+            IFNULL(r.refund_amount, 0) AS refundAmount,
+            r.refund_method            AS refundMethod,
+            r.remark                   AS remark,
+            r.create_user_id           AS createUserId,
+            r.create_time              AS createTime,
+            r.modify_user_id           AS modifyUserId,
+            r.modify_time              AS modifyTime,
+            cus.id                     AS customerId,
+            cus.customer_name          AS customerName,
+            o.order_total              AS orderTotal,
+            o.order_time               AS orderTime,
+            e.name                     AS employeeName,
+            rel.relation_name          AS relationName,
+            CONCAT(
+                YEAR (o.order_time),
+                '-',
+                MONTH (o.order_time),
+                ' ',
+                (
+                    SELECT
+                        GROUP_CONCAT(
+                            CONCAT(
+                                p.product_name,
+                                ':',
+                                op.total_price
+                            )
+                        )
+                    FROM
+                        order_product op
+                    LEFT JOIN product p ON p.id = op.product_id
+                    WHERE
+                        op.order_base_id = orderBaseId
+                )
+            ) AS orderBaseMessages,
+            	timestampdiff(DAY, DATE_FORMAT( refund_date,'%Y-%m-%d'), now()) AS dif_f
+        FROM
+            refund r
+        LEFT JOIN `user` e ON e.id = r.employee_id
+        LEFT JOIN relation rel ON rel.id = r.relation_id
+        LEFT JOIN customer cus ON cus.id = rel.customer_id
+        LEFT JOIN order_base o ON o.id = r.order_base_id
+    </sql>
+    <select id="searchRefund" resultType="com.ike.pojo.vo.RefundVo">
+        <include refid="search"/>
+        <where>
+            <if test="searchVO.id != null and searchVO.id != ''">
+                r.id = #{searchVO.id}
+            </if>
+            <if test="searchVO.customerId != null and searchVO.customerId != ''">
+                cus.id = #{searchVO.customerId}
+            </if>
+            <if test="searchVO.createUserId != null and searchVO.createUserId != ''">
+                and r.create_user_id = #{searchVO.createUserId}
+            </if>
+            <if test="searchVO.employeeId != null and searchVO.employeeId != ''">
+                and r.employee_id = #{searchVO.employeeId}
+            </if>
+            <if test="searchVO.createTimeMax != null and searchVO.createTimeMin != null">
+                and r.create_time between #{searchVO.createTimeMin} and #{searchVO.createTimeMax}
+            </if>
+            <if test="searchVO.orderBaseId != null and searchVO.orderBaseId != ''">
+                and r.order_base_id = #{searchVO.orderBaseId}
+            </if>
+            <if test="searchVO.returnTimeMin != null and searchVO.returnTimeMax != null">
+                and r.refund_date between #{searchVO.returnTimeMin} and #{searchVO.returnTimeMax}
+            </if>
+            <if test="searchVO.amountMax != null and searchVO.amountMin != null">
+                and r.refund_amount between #{searchVO.amountMin} and #{searchVO.amountMax}
+            </if>
+            <if test="searchVO.returnMethod!=null and searchVO.returnMethod!= '' ">
+                and r.refund_method = #{searchVO.returnMethod}
+            </if>
+            <if test="searchVO.relationName!=null and searchVO.relationName!= ''">
+                and rel.relation_name LIKE CONCAT('%',#{searchVO.relationName},'%')
+            </if>
+            <if test="searchVO.customerName!=null and searchVO.customerName!= ''">
+                and cus.customer_name LIKE concat('%',#{searchVO.customerName},'%')
+            </if>
+            <if test="searchVO.preMouth != null">
+                and r.refund_date between concat(date_format(LAST_DAY(now() - interval 1 month),'%Y-%m-'),'01')  and
+                LAST_DAY(now() - interval 1 month)
+            </if>
+            <if test="searchVO.isMouth != null">
+                and r.refund_date between concat(date_format(LAST_DAY(now()),'%Y-%m-'),'01') and last_day(now())
+            </if>
+        </where>
+        group by r.id
+        having 1 = 1
+        <if test="searchVO.isToday != null">
+            and dif_f = 0
+        </if>
+        <if test="searchVO.yesterday != null">
+            and dif_f = 1
+        </if>
+        order by r.refund_date ${searchVO.sort}
+    </select>
+    <select id="searchRefundByCondition" parameterType="com.ike.pojo.vo.RefundStatisitcVo"
+            resultType="com.ike.pojo.vo.RefundVo">
+        <choose>
+            <when test="searchVO.year != null and searchVO.month == null">
+                <include refid="search"/>
+                where DATE_FORMAT(r.refund_date,'%Y') = '${searchVO.year}'
+                <if test="searchVO.employeeId!=null">
+                    and r.employee_id = #{searchVO.employeeId}
+                </if>
+            </when>
+
+            <when test="searchVO.year != null and searchVO.month != null and searchVO.day == null">
+                <include refid="search"/>
+                where DATE_FORMAT(r.refund_date,'%Y-%m') = '${searchVO.year}-${searchVO.month}'
+                <if test="searchVO.employeeId!=null">
+                    and r.employee_id = #{searchVO.employeeId}
+                </if>
+            </when>
+            <when test="searchVO.year != null and searchVO.month != null and searchVO.day != null">
+                <include refid="search"/>
+                where DATE_FORMAT(r.refund_date,'%Y-%m-%d') = '${searchVO.year}-${searchVO.month}-${searchVO.day}'
+                <if test="searchVO.employeeId!=null">
+                    and r.employee_id = #{searchVO.employeeId}
+                </if>
+            </when>
+            <otherwise>
+                <include refid="search"/>
+                where
+                <if test="searchVO.employeeId!=null">
+                    and r.employee_id = #{searchVO.employeeId}
+                </if>
+                ORDER BY DATE_FORMAT(r.refund_date,'%Y') ${searchVO.sortType}
+            </otherwise>
+        </choose>
+    </select>
+    <select id="selectAllList" resultType="com.ike.pojo.vo.RefundVo">
+        <include refid="search"/>
+    </select>
+    <select id="selectByUserid" resultType="com.ike.pojo.vo.RefundVo">
+        <include refid="search"/>
+        where r.employee_id = #{id}
+    </select>
+
+    <insert id="insertList" parameterType="java.util.List">
+        insert into refund (relation_id, employee_id, order_base_id,
+        refund_date, refund_amount, refund_method,
+        remark, create_user_id, create_time,
+        modify_user_id, modify_time)
+        values
+        <foreach collection="refundList" item="refund" index="index" separator=",">
+            (#{refund.relationId,jdbcType=BIGINT}, #{refund.employeeId,jdbcType=BIGINT},
+            #{refund.orderBaseId,jdbcType=BIGINT},
+            #{refund.refundDate,jdbcType=TIMESTAMP}, #{refund.refundAmount,jdbcType=DOUBLE},
+            #{refund.refundMethod,jdbcType=VARCHAR},
+            #{refund.remark,jdbcType=VARCHAR}, #{refund.createUserId,jdbcType=BIGINT},
+            #{refund.createTime,jdbcType=TIMESTAMP},
+            #{refund.modifyUserId,jdbcType=BIGINT}, #{refund.modifyTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <delete id="deleteListByOrderBaseId" parameterType="java.lang.Long">
+        delete from refund
+        where order_base_id = #{order_base_id,jdbcType=BIGINT}
+    </delete>
+
+</mapper>

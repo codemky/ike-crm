@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.RelationExtMapper">
+
+    <insert id="importExcel">
+        insert into relation (customer_id, relation_name, relation_sex,
+        relation_position, relation_call, relation_phone,
+        relation_email, relation_primary, landline_number,
+        create_user_id, create_time) values
+        <foreach collection="RelationList" item="item"
+                 index="index" separator=",">
+            ( #{item.customerId}, #{item.relationName}, #{item.relationSex},
+            #{item.relationPosition}, #{item.relationCall}, #{item.relationPhone},
+            #{item.relationEmail}, #{item.relationPrimary}, #{item.landlineNumber},
+            #{item.createUserId}, #{item.createTime} )
+        </foreach>
+    </insert>
+
+</mapper>

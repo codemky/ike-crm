@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.StatisticsMapper" >
+
+    <select id="selectCustomerCountByStageName" resultType="com.ike.pojo.vo.StatisticsVo">
+        select stage_name as dataName,
+        count(id) as dataNum
+        FROM v_customer_ext
+        GROUP BY stage_name
+    </select>
+
+    <select id="selectCustomerCountByLevelName" resultType="com.ike.pojo.vo.StatisticsVo">
+        select level_name as dataName,
+        count(id) as dataNum
+        FROM v_customer_ext
+        GROUP BY level_name
+    </select>
+
+    <select id="selectCustomerCountByOrigin" resultType="com.ike.pojo.vo.StatisticsVo">
+        select origin_name as dataName,
+        count(id) as dataNum
+        FROM v_customer_ext
+        GROUP BY origin_name
+    </select>
+
+    <select id="selectCustomerCountByAddress" resultType="com.ike.pojo.vo.StatisticsVo">
+        select customer_address as dataName,
+        count(id) as dataNum
+        FROM v_customer_ext
+        GROUP BY customer_address
+    </select>
+
+
+
+
+    <select id="staCustomerAddByYear" resultType="CustomerStatisticVO">
+        SELECT YEAR(cus.create_time) year, COUNT(*) count
+        FROM customer cus
+        GROUP BY YEAR(cus.create_time)
+        ORDER BY YEAR(cus.create_time)
+    </select>
+
+    <select id="staCustomerAddByMonth" resultType="CustomerStatisticVO">
+        SELECT year(cus.create_time) year, month(cus.create_time) month, COUNT(*) count
+        FROM customer cus
+        where YEAR(cus.create_time) = #{year}
+        GROUP BY MONTH(cus.create_time)
+        ORDER BY MONTH(cus.create_time)
+    </select>
+
+    <select id="staCustomerAddByDay" resultType="CustomerStatisticVO">
+        SELECT year(cus.create_time) year, month(cus.create_time) month,day(cus.create_time) day, COUNT(*) count
+        FROM customer cus
+        WHERE  date_format(cus.create_time,'%Y-%m') = #{yearAndMonth}
+        GROUP BY day(cus.create_time)
+        ORDER BY day(cus.create_time)
+    </select>
+
+    <select id="staFollowAddByYear" resultType="CustomerStatisticVO">
+        SELECT YEAR(f.follow_time) year, COUNT(*) count
+        FROM follow f
+        GROUP BY YEAR(f.follow_time)
+        ORDER BY YEAR(f.follow_time)
+    </select>
+
+    <select id="staFollowAddByMonth" resultType="CustomerStatisticVO">
+        SELECT YEAR(f.follow_time) year, MONTH(f.follow_time) month, COUNT(*) count
+        FROM follow f
+        WHERE YEAR(f.follow_time) = #{year}
+        GROUP BY MONTH(f.follow_time)
+        ORDER BY MONTH(f.follow_time)
+    </select>
+
+    <select id="staFollowAddByDay" resultType="CustomerStatisticVO">
+        SELECT year(f.follow_time) year, month(f.follow_time) month, day(f.follow_time) day, COUNT(*) count
+        FROM follow f
+        WHERE date_format(f.follow_time,'%Y-%m') = #{yearAndMonth}
+        GROUP BY day(f.follow_time)
+        ORDER BY day(f.follow_time)
+    </select>
+
+    <select id="staCustomerFollowByYear" resultType="CustomerStatisticVO">
+        select t.year, count(t.customer_id) count
+        from (
+                 SELECT YEAR(f.follow_time) year, f.customer_id
+                 FROM follow f
+                 GROUP BY YEAR(f.follow_time), f.customer_id
+             ) t
+        group by t.year
+        order by t.year
+    </select>
+
+    <select id="staCustomerFollowByMonth" resultType="CustomerStatisticVO">
+        SELECT t.year, t.month, COUNT(t.customer_id) count
+        FROM (
+                 SELECT YEAR(f.follow_time) year, MONTH(f.follow_time) month, f.customer_id
+                 FROM follow f
+                 WHERE  YEAR(f.follow_time) = #{year}
+                 GROUP BY MONTH(f.follow_time), f.customer_id
+
+             ) t
+        GROUP BY t.year
+        ORDER BY t.year
+    </select>
+
+    <select id="staCustomerFollowByDay" resultType="CustomerStatisticVO">
+        select t.year,t.month,t.day, count(t.customer_id) count
+        from (
+                 SELECT YEAR(f.follow_time) year, month(f.follow_time) month, day(f.follow_time) day, f.customer_id
+                 FROM follow f
+                 WHERE  date_format(f.follow_time,'%Y-%m') = #{yearAndMonth}
+                 GROUP BY YEAR(f.follow_time), f.customer_id
+             ) t
+        group by t.year
+        order by t.year
+    </select>
+
+    <select id="statisticalOrderBaseTotalByDateArea" parameterType="com.ike.pojo.vo.OrderBaseStatisitcVO" resultType="com.ike.pojo.vo.StatisticsVo">
+        SELECT
+          DATE_FORMAT(order_time,#{OrderBaseStatisitcVO.dateCompany}) as dataName, SUM(${OrderBaseStatisitcVO.staName}) as dataNum
+        FROM
+          order_base
+        WHERE
+        employee_id = #{OrderBaseStatisitcVO.employeeId} and
+        order_state = #{OrderBaseStatisitcVO.orderState}
+        <if test="OrderBaseStatisitcVO.beginDate != null and OrderBaseStatisitcVO.beginDate != ''">
+            and order_time &gt;= #{OrderBaseStatisitcVO.beginDate}
+        </if>
+        <if test="OrderBaseStatisitcVO.endDate != null and OrderBaseStatisitcVO.endDate != ''">
+            and order_time &lt;= #{OrderBaseStatisitcVO.endDate}
+        </if>
+        GROUP BY
+          DATE_FORMAT(order_time,#{OrderBaseStatisitcVO.dateCompany})
+        ORDER BY order_time ${OrderBaseStatisitcVO.sortType}
+    </select>
+    <select id="statisticalOrderBaseTotal" parameterType="com.ike.pojo.vo.OrderBaseStatisitcVO" resultType="com.ike.pojo.vo.StatisticsVo">
+
+        <choose>
+
+            <when test="OrderBaseStatisitcVO.year != null and OrderBaseStatisitcVO.month == null">
+                <foreach collection="OrderBaseStatisitcVO.dateList" index="index" item="dl" separator=" ">
+                    <if test="index != 0">
+                        union
+                    </if>
+                    SELECT '${OrderBaseStatisitcVO.year}-${dl}' as dataName, ifnull(SUM(${OrderBaseStatisitcVO.staName}),0) as dataNum
+                    FROM order_base
+                    where DATE_FORMAT(order_time,'%Y-%m') = '${OrderBaseStatisitcVO.year}-${dl}' and
+                    employee_id = #{OrderBaseStatisitcVO.employeeId} and
+                    order_state = #{OrderBaseStatisitcVO.orderState}
+                </foreach>
+            </when>
+
+            <when test="OrderBaseStatisitcVO.year != null and OrderBaseStatisitcVO.month != null">
+                <foreach collection="OrderBaseStatisitcVO.dateList" index="index" item="dl" separator=" ">
+                    <if test="index != 0">
+                        union
+                    </if>
+                    SELECT '${OrderBaseStatisitcVO.month}-${dl}' as dataName, ifnull(SUM(${OrderBaseStatisitcVO.staName}),0) as dataNum
+                    FROM order_base
+                    where DATE_FORMAT(order_time,'%Y-%m-%d') = '${OrderBaseStatisitcVO.year}-${OrderBaseStatisitcVO.month}-${dl}' and
+                    employee_id = #{OrderBaseStatisitcVO.employeeId} and
+                    order_state = #{OrderBaseStatisitcVO.orderState}
+                </foreach>
+            </when>
+
+            <otherwise>
+                SELECT DATE_FORMAT(order_time,'%Y') as dataName, SUM(${OrderBaseStatisitcVO.staName}) as dataNum
+                FROM order_base
+                where employee_id = #{OrderBaseStatisitcVO.employeeId} and
+                order_state = #{OrderBaseStatisitcVO.orderState}
+                GROUP BY dataName
+                ORDER BY DATE_FORMAT(order_time,'%Y') ${OrderBaseStatisitcVO.sortType}
+            </otherwise>
+
+        </choose>
+
+    </select>
+
+    <select id="staProductByName" parameterType="com.ike.pojo.vo.StaProSearchVO" resultType="com.ike.pojo.vo.ProStatisticVO">
+        SELECT  z.productName,
+				SUM( z.customer_times ) AS customer_times,
+				SUM( z.order_num ) AS order_num,
+				SUM( z.order_count ) AS order_count
+        FROM
+        (SELECT CONCAT(p.product_name,IFNULL(p.product_type,'')) as productName,
+                NULL as customer_times,
+                NULL as order_num,
+                NULL as order_count
+        FROM product p
+        where p.deleted = 0
+        UNION
+        SELECT
+            t.productName,
+            SUM( t.ctimes ) AS customer_times,
+            SUM( order_num ) AS order_num,
+            SUM( order_count ) AS order_count
+        FROM
+            (
+        SELECT
+        COUNT( DISTINCT c.id ) AS ctimes,
+            sum( op.order_count ) AS order_num,
+            sum( op.actual_price ) AS order_count,
+            YEAR ( op.create_time ) AS y,
+            c.id,
+            CONCAT(p.product_name,IFNULL(p.product_type,'')) as productName
+        FROM
+            product p
+            LEFT JOIN order_product op ON op.product_id = p.id
+            LEFT JOIN order_base ob ON ob.id = op.order_base_id
+            LEFT JOIN relation r ON r.id = ob.relation_id
+            LEFT JOIN customer c ON c.id = r.customer_id
+        WHERE
+            p.deleted = 0
+        <if test="searchVO.year != null">
+            AND YEAR ( op.create_time ) = #{searchVO.year}
+        </if>
+        <if test="searchVO.month != null">
+            AND MONTH ( op.create_time ) = #{searchVO.month}
+        </if>
+        <if test="searchVO.day != null">
+            AND DAY ( op.create_time ) = #{searchVO.day}
+        </if>
+        <if test="searchVO.beginDate != null and searchVO.endDate != null">
+            AND op.create_time BETWEEN #{searchVO.beginDate} and #{searchVO.endDate}
+        </if>
+        GROUP BY
+            c.id, productName
+            ) t
+        GROUP BY
+            t.y, t.productName
+            ) z
+        GROUP BY z.productName
+        ORDER BY order_count DESC
+    </select>
+
+    <select id="staProductByClass" parameterType="com.ike.pojo.vo.StaProSearchVO"
+            resultType="com.ike.pojo.vo.StaProductClassVO">
+        SELECT
+        t.id,
+        t.class_name AS className,
+        t.previous_class_id AS preClassId,
+        IFNULL(SUM( t.total_price),0) AS totalPrice,
+        IFNULL(SUM( t.total_sum ),0) AS totalSum,
+        COUNT( DISTINCT t.cid ) AS customerTimes
+        FROM
+        (
+        SELECT
+        pc.id,
+        pc.class_name,
+        pc.previous_class_id,
+        NULL AS total_price,
+        NULL AS total_sum,
+        NULL AS cid
+        FROM
+        product_class pc UNION
+        SELECT
+        pc.id,
+        pc.class_name,
+        pc.previous_class_id,
+        SUM( op.actual_price ) AS total_price,
+        SUM( op.order_count ) AS total_sum,
+        c.id AS cid
+        FROM
+        product_class pc
+        LEFT JOIN product p ON p.product_class_id = pc.id
+        LEFT JOIN order_product op ON op.product_id = p.id
+        LEFT JOIN order_base ob ON ob.id = op.order_base_id
+        LEFT JOIN relation r ON r.id = ob.relation_id
+        LEFT JOIN customer c ON c.id = r.customer_id
+        <where>
+            <if test="searchVO.year != null">
+                AND YEAR ( op.create_time ) = #{searchVO.year}
+            </if>
+            <if test="searchVO.month != null">
+                AND MONTH ( op.create_time ) = #{searchVO.month}
+            </if>
+            <if test="searchVO.day != null">
+                AND DAY ( op.create_time ) = #{searchVO.day}
+            </if>
+            <if test="searchVO.beginDate != null and searchVO.endDate != null">
+                AND op.create_time BETWEEN #{searchVO.beginDate} and #{searchVO.endDate}
+            </if>
+        </where>
+        GROUP BY
+        pc.id,
+        c.id
+        ) t
+        GROUP BY
+        t.id
+    </select>
+    
+</mapper>

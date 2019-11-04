@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.RolePermissinoExtMapper">
+
+    <resultMap id="RoleMap" type="RoleVo">
+        <id property="id" column="id"></id>
+        <result property="roleName" column="roleName"></result>
+        <collection property="permissions" ofType="Permission" column="pid">
+            <!--property对应javabean属性,column对应下面查询别名-->
+            <id property="id" column="pid"></id>
+            <result property="permissionName" column="permissionName"></result>
+        </collection>
+    </resultMap>
+    <select id="listByRid" resultMap="RoleMap">
+        select r.id id,r.role_name roleName,p.id pid,p.permission_name permissionName from role_permission rp
+        left join permission p on rp.rp_permission_id = p.id
+        left join role r on rp.rp_role_id = r.id
+        where rp_role_id in
+        <foreach collection="ids" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="batchInsert">
+        insert into role_permission (rp_role_id,rp_permission_id)
+        VALUES
+        <foreach collection="permissions" item="item" separator=",">
+            (#{id},#{item})
+        </foreach>
+    </insert>
+
+    <delete id="batchDelete">
+        delete from role_permission
+        where rp_role_id = #{id}
+        and rp_permission_id in
+        <foreach collection="permissions" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="listPerissionIdByRid" resultType="Long">
+        select rp_permission_id
+        from role_permission
+        where rp_role_id = #{id}
+    </select>
+
+    <select id="listAllPermission" resultType="Permission">
+        select * from permission
+    </select>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.UserExtMapper">
+    <select id="selectAll" resultType="UserVo">
+        select u.*, d.department_name departmentName, p.position_name positionName
+         from user u
+         left join department d on u.department_id = d.id
+         left join position p on u.position_id = p.id
+         order by u.id
+    </select>
+
+    <select id="selectById" resultType="UserVo">
+        select u.*, d.department_name departmentName, p.position_name positionName
+         from user u
+         left join department d on u.department_id = d.id
+         left join position p on u.position_id = p.id
+         where u.id = #{id}
+    </select>
+
+    <select id="selectListByUid" resultType="UserVo">
+     select u.*, d.department_name departmentName, p.position_name positionName
+         from user u
+         left join department d on u.department_id = d.id
+         left join position p on u.position_id = p.id
+     where u.department_id = #{id}
+     order by u.id
+  </select>
+
+    <insert id="importExcel">
+        insert into `user` (username, name, gender,position_id,department_id, phone, email, status, salt, password)
+        values
+        <foreach collection="importList" item="userVo"
+                 index="index" separator=",">
+            (#{userVo.username},#{userVo.name},#{userVo.gender},#{userVo.positionId},
+            #{userVo.departmentId},#{userVo.phone},#{userVo.email},#{userVo.status},
+            #{userVo.salt},#{userVo.password})
+        </foreach>
+    </insert>
+
+    <select id="getExportList" resultType="userVo">
+        select u.username,u.name,u.gender, d.department_name departmentName,p.position_name positionName,u.phone,u.email
+        from user u
+           left join department d on u.department_id = d.id
+           left join position p on u.position_id = p.id
+        order by u.id
+    </select>
+</mapper>

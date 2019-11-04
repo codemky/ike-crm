@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.ReturnPlanExtMapper">
+    <select id="selectByOrderId" resultType="com.ike.pojo.ReturnPlan">
+        SELECT
+            r.id,
+            r.plan_detail,
+            r.create_user_id,
+            r.create_time,
+            r.modify_user_id,
+            r.modify_time
+        FROM
+            return_plan r
+        LEFT JOIN order_base o ON r.id = o.return_plan_id
+        WHERE
+            o.id = 1
+        GROUP BY
+            r.id
+    </select>
+    <select id="selectListByPlanId" resultType="com.ike.pojo.vo.ReturnPlanVo">
+        select
+            r.id             as id,
+            r.return_plan_id as returnPlanId,
+            r.return_number  as returnNumber,
+            r.return_money   as returnMoney,
+            r.time_interval  as timeInterval,
+            r.create_user_id as createUserId,
+            r.create_time    as createTime,
+            r.modify_user_id as modifyUserId,
+            r.modify_time    as modifyTime,
+            rp.plan_detail   as planDetail
+        from
+            return_plan_detail r
+                LEFT JOIN return_plan rp ON r.return_plan_id = rp.id
+        where r.return_plan_id = #{plan_id}
+    </select>
+
+    <select id="selectListAll" resultType="com.ike.pojo.vo.ReturnPlanVo">
+        select
+            r.id             as id,
+            r.return_plan_id as returnPlanId,
+            r.return_number  as returnNumber,
+            r.return_money   as returnMoney,
+            r.time_interval  as timeInterval,
+            r.create_user_id as createUserId,
+            r.create_time    as createTime,
+            r.modify_user_id as modifyUserId,
+            r.modify_time    as modifyTime,
+            rp.plan_detail   as planDetail
+        from
+            return_plan_detail r
+                LEFT JOIN return_plan rp ON r.return_plan_id = rp.id
+    </select>
+</mapper>

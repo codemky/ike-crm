@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ComplaintMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.Complaint" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="relation_id" property="relationId" jdbcType="BIGINT" />
+    <result column="complaint_theme" property="complaintTheme" jdbcType="VARCHAR" />
+    <result column="complaint_time" property="complaintTime" jdbcType="TIMESTAMP" />
+    <result column="complaint_type" property="complaintType" jdbcType="VARCHAR" />
+    <result column="complaint_method" property="complaintMethod" jdbcType="VARCHAR" />
+    <result column="complaint_content" property="complaintContent" jdbcType="VARCHAR" />
+    <result column="urgency_level" property="urgencyLevel" jdbcType="VARCHAR" />
+    <result column="complaint_phone" property="complaintPhone" jdbcType="VARCHAR" />
+    <result column="charge_id" property="chargeId" jdbcType="BIGINT" />
+    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, relation_id, complaint_theme, complaint_time, complaint_type, complaint_method, 
+    complaint_content, urgency_level, complaint_phone, charge_id, create_user_id, create_time, 
+    modify_user_id, modify_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.ike.pojo.ComplaintExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from complaint
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from complaint
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from complaint
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ike.pojo.ComplaintExample" >
+    delete from complaint
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ike.pojo.Complaint" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into complaint (relation_id, complaint_theme, complaint_time, 
+      complaint_type, complaint_method, complaint_content, 
+      urgency_level, complaint_phone, charge_id, 
+      create_user_id, create_time, modify_user_id, 
+      modify_time)
+    values (#{relationId,jdbcType=BIGINT}, #{complaintTheme,jdbcType=VARCHAR}, #{complaintTime,jdbcType=TIMESTAMP}, 
+      #{complaintType,jdbcType=VARCHAR}, #{complaintMethod,jdbcType=VARCHAR}, #{complaintContent,jdbcType=VARCHAR}, 
+      #{urgencyLevel,jdbcType=VARCHAR}, #{complaintPhone,jdbcType=VARCHAR}, #{chargeId,jdbcType=BIGINT}, 
+      #{createUserId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{modifyUserId,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ike.pojo.Complaint" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into complaint
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="relationId != null" >
+        relation_id,
+      </if>
+      <if test="complaintTheme != null" >
+        complaint_theme,
+      </if>
+      <if test="complaintTime != null" >
+        complaint_time,
+      </if>
+      <if test="complaintType != null" >
+        complaint_type,
+      </if>
+      <if test="complaintMethod != null" >
+        complaint_method,
+      </if>
+      <if test="complaintContent != null" >
+        complaint_content,
+      </if>
+      <if test="urgencyLevel != null" >
+        urgency_level,
+      </if>
+      <if test="complaintPhone != null" >
+        complaint_phone,
+      </if>
+      <if test="chargeId != null" >
+        charge_id,
+      </if>
+      <if test="createUserId != null" >
+        create_user_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="relationId != null" >
+        #{relationId,jdbcType=BIGINT},
+      </if>
+      <if test="complaintTheme != null" >
+        #{complaintTheme,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintTime != null" >
+        #{complaintTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="complaintType != null" >
+        #{complaintType,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintMethod != null" >
+        #{complaintMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintContent != null" >
+        #{complaintContent,jdbcType=VARCHAR},
+      </if>
+      <if test="urgencyLevel != null" >
+        #{urgencyLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintPhone != null" >
+        #{complaintPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="chargeId != null" >
+        #{chargeId,jdbcType=BIGINT},
+      </if>
+      <if test="createUserId != null" >
+        #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ike.pojo.ComplaintExample" resultType="java.lang.Integer" >
+    select count(*) from complaint
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update complaint
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.relationId != null" >
+        relation_id = #{record.relationId,jdbcType=BIGINT},
+      </if>
+      <if test="record.complaintTheme != null" >
+        complaint_theme = #{record.complaintTheme,jdbcType=VARCHAR},
+      </if>
+      <if test="record.complaintTime != null" >
+        complaint_time = #{record.complaintTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.complaintType != null" >
+        complaint_type = #{record.complaintType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.complaintMethod != null" >
+        complaint_method = #{record.complaintMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="record.complaintContent != null" >
+        complaint_content = #{record.complaintContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.urgencyLevel != null" >
+        urgency_level = #{record.urgencyLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.complaintPhone != null" >
+        complaint_phone = #{record.complaintPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.chargeId != null" >
+        charge_id = #{record.chargeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createUserId != null" >
+        create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.modifyUserId != null" >
+        modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update complaint
+    set id = #{record.id,jdbcType=BIGINT},
+      relation_id = #{record.relationId,jdbcType=BIGINT},
+      complaint_theme = #{record.complaintTheme,jdbcType=VARCHAR},
+      complaint_time = #{record.complaintTime,jdbcType=TIMESTAMP},
+      complaint_type = #{record.complaintType,jdbcType=VARCHAR},
+      complaint_method = #{record.complaintMethod,jdbcType=VARCHAR},
+      complaint_content = #{record.complaintContent,jdbcType=VARCHAR},
+      urgency_level = #{record.urgencyLevel,jdbcType=VARCHAR},
+      complaint_phone = #{record.complaintPhone,jdbcType=VARCHAR},
+      charge_id = #{record.chargeId,jdbcType=BIGINT},
+      create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ike.pojo.Complaint" >
+    update complaint
+    <set >
+      <if test="relationId != null" >
+        relation_id = #{relationId,jdbcType=BIGINT},
+      </if>
+      <if test="complaintTheme != null" >
+        complaint_theme = #{complaintTheme,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintTime != null" >
+        complaint_time = #{complaintTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="complaintType != null" >
+        complaint_type = #{complaintType,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintMethod != null" >
+        complaint_method = #{complaintMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintContent != null" >
+        complaint_content = #{complaintContent,jdbcType=VARCHAR},
+      </if>
+      <if test="urgencyLevel != null" >
+        urgency_level = #{urgencyLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="complaintPhone != null" >
+        complaint_phone = #{complaintPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="chargeId != null" >
+        charge_id = #{chargeId,jdbcType=BIGINT},
+      </if>
+      <if test="createUserId != null" >
+        create_user_id = #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ike.pojo.Complaint" >
+    update complaint
+    set relation_id = #{relationId,jdbcType=BIGINT},
+      complaint_theme = #{complaintTheme,jdbcType=VARCHAR},
+      complaint_time = #{complaintTime,jdbcType=TIMESTAMP},
+      complaint_type = #{complaintType,jdbcType=VARCHAR},
+      complaint_method = #{complaintMethod,jdbcType=VARCHAR},
+      complaint_content = #{complaintContent,jdbcType=VARCHAR},
+      urgency_level = #{urgencyLevel,jdbcType=VARCHAR},
+      complaint_phone = #{complaintPhone,jdbcType=VARCHAR},
+      charge_id = #{chargeId,jdbcType=BIGINT},
+      create_user_id = #{createUserId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.CustomerStageLogExtMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.CustomerStageLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="stage_before" property="stageBefore" jdbcType="BIGINT" />
+    <result column="stage_after" property="stageAfter" jdbcType="BIGINT" />
+    <result column="customer_id" property="customerId" jdbcType="BIGINT" />
+  </resultMap>
+
+  <resultMap id="selectByCustomerIdMap" type="com.ike.pojo.vo.CustomerStageLogVo">
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="stage_before" property="stageBefore" jdbcType="BIGINT" />
+    <result column="stage_after" property="stageAfter" jdbcType="BIGINT" />
+    <result column="customer_id" property="customerId" jdbcType="BIGINT" />
+    <result column="name" property="modifyName" />
+    <result column="b_name" property="stageBeforeName" />
+    <result column="a_name" property="stageAfterName" />
+
+  </resultMap>
+
+
+
+
+  <select id="selectByCustomerId" resultMap="selectByCustomerIdMap">
+    select csl.*, user.name, cs1.stage_name b_name, cs2.stage_name a_name
+    from customer_stage_log csl, user, customer_stage cs1, customer_stage cs2
+    where csl.modify_user_id = user.id
+    and csl.stage_before = cs1.id
+    and csl.stage_after = cs2.id
+    and csl.customer_id = #{customerId}
+    order by csl.modify_time
+
+  </select>
+
+
+
+</mapper>

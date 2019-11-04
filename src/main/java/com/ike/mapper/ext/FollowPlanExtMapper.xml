@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.FollowPlanExtMapper">
+
+    <resultMap id="FollowPlanVo" type="com.ike.pojo.vo.FollowPlanVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="plan_date" property="planDate" jdbcType="TIMESTAMP"/>
+        <result column="relation_id" property="relationId" jdbcType="BIGINT"/>
+        <result column="employee_id" property="employeeId" jdbcType="BIGINT"/>
+        <result column="follow_id" property="followId" jdbcType="BIGINT"/>
+        <result column="plan_content" property="planContent" jdbcType="VARCHAR"/>
+        <result column="create_date" property="createDate" jdbcType="TIMESTAMP"/>
+        <result column="iscomplete" property="iscomplete" jdbcType="TINYINT"/>
+        <result column="c_name" property="customerName"/>
+        <result column="r_name" property="relationName"/>
+        <result column="u_name" property="employeeName"/>
+        <result column="c_id" property="customerId"/>
+
+    </resultMap>
+
+    <select id="selectByCriteria" resultMap="FollowPlanVo">
+        select fp.*,
+        c.customer_name c_name,
+        r.relation_name r_name,
+        r.relation_phone r_phone,
+        c.id c_id,
+        u.name u_name,
+        timestampdiff(day, now(), fp.plan_date) t_diff
+
+        from ( follow_plan fp,
+        customer c,
+        relation r,
+        user u ) left join follow f on f.id = fp.follow_id
+        where fp.employee_id = u.id
+        and fp.relation_id = r.id
+        and r.customer_id = c.id
+        <if test="criteria.id != null ">
+            and fp.id = #{criteria.id}
+        </if>
+        <if test="criteria.employeeIds != null">
+            and fp.employee_id in
+            <foreach item="item" index="index" collection="criteria.employeeIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="criteria.customerId != null ">
+            and c.id = #{criteria.customerId}
+        </if>
+        <if test="criteria.relationId != null ">
+            and r.id = #{criteria.relationId}
+        </if>
+        <if test="criteria.minDate != null and criteria.maxDate != null">
+            and f.follow_time between #{criteria.minDate} and #{criteria.maxDate}
+        </if>
+        <if test="criteria.notComplete != null ">
+            and fp.iscomplete = 1
+        </if>
+        <if test="criteria.isComplete != null ">
+            and fp.iscomplete = 0
+        </if>
+        <if test="criteria.notExecute != null ">
+            and fp.iscomplete is null
+        </if>
+        <if test="criteria.customerName != null">
+            and c.customer_name like #{criteria.customerName}
+        </if>
+        <if test="criteria.relationName != null">
+            and r.relation_name like #{criteria.relationName}
+        </if>
+        <if test="criteria.relationPhone != null">
+            and r.relation_phone like #{criteria.relationPhone}
+        </if>
+
+        group by fp.id
+        having 1 = 1
+        <if test="criteria.isToday != null">
+            and t_diff = 0
+        </if>
+        <if test="criteria.isTomorrow != null">
+            and t_diff = 1
+        </if>
+        <if test="criteria.isAfterTomorrow != null">
+            and t_diff = 2
+        </if>
+        <if test="criteria.isWeek != null">
+            and t_diff = 6
+        </if>
+
+
+        order by ${criteria.sortName} ${criteria.sortType}
+    </select>
+
+    <select id="selectCustomerPlanCount" resultType="java.lang.Long">
+        select count(distinct fp.id)
+        from customer c
+            left join relation r on c.id = r.customer_id
+            left join follow_plan fp on r.id = fp.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+    <update id="updateForTransferPlan">
+        update follow_plan fp
+        set fp.employee_id = #{after}
+        where fp.employee_id = #{before}
+    </update>
+
+    <update id="updateForTransferArrange">
+        update follow_arrange fa
+        set fa.arrange_id = #{after}
+        where fa.arrange_id = #{before}
+    </update>
+
+    <update id="updateForTransferCharge">
+        update follow_arrange fa
+        set fa.charge_id = #{after}
+        where fa.charge_id = #{before}
+    </update>
+
+
+</mapper>

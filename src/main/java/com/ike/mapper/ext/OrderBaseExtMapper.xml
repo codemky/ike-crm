@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.OrderBaseExtMapper">
+
+    <sql id="BaseSql">
+        SELECT
+            o.id                                                                   as id,
+            o.employee_id                                                          as employeeId,
+            u.`name`                                                               as employeeName,
+            cu.customer_name                                                       as relationName,
+            cu.id                                                                  as customerId,
+            o.note                                                                 as note,
+            o.order_total                                                          as orderTotal,
+            o.order_actual_total                                                   as orderActualTotal,
+            o.order_cost                                                           as orderCost,
+            o.order_get_sum                                                        as orderGetSum,
+            o.order_time                                                           as orderTime,
+            (o.order_actual_total - o.order_cost)                                  as profit,
+            (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount,
+            o.create_user_id                                                       as createUserId,
+            o.create_time                                                          as createTime,
+            o.modify_user_id                                                       as modifyUserId,
+            o.modify_time                                                          as modifyTime,
+            o.order_state                                                          as orderState,
+            o.payment_method                                                       as paymentMethod,
+            s.id                                                                   as relationId,
+            cu.customer_name                                                       as customerName
+        FROM
+            order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation s ON s.id = o.relation_id
+                LEFT JOIN customer cu ON cu.id = s.customer_id
+                LEFT JOIN return_detail rd ON rd.order_base_id = o.id
+    </sql>
+
+    <select id="selectOrderBaseAll" resultType="com.ike.pojo.vo.OrderBaseVo">
+        <include refid="BaseSql"/>
+        GROUP BY
+        o.id
+        ORDER BY
+        o.order_time DESC
+    </select>
+
+    <select id="selectOrderBaseByEemployeeId" resultType="com.ike.pojo.vo.OrderBaseVo">
+        <include refid="BaseSql"/>
+        WHERE
+        o.employee_id = #{employee_id}
+        GROUP BY
+        o.id
+        ORDER BY
+        o.order_time DESC
+    </select>
+
+    <select id="selectOrderBaseByEemployeeIdAndStatus" resultType="com.ike.pojo.vo.OrderBaseVo">
+        <include refid="BaseSql"/>
+        WHERE
+        o.order_state = #{order_state}
+        <if test="employee_id != null and employee_id != ''">
+            AND o.employee_id = #{employee_id}
+        </if>
+        GROUP BY
+        o.id
+        ORDER BY
+        o.order_time DESC
+    </select>
+
+    <select id="selectOrderBaseByOrderId" resultType="com.ike.pojo.vo.OrderDetailVo">
+        SELECT
+            o.id                                                                   as id,
+            o.employee_id                                                          as employeeId,
+            u.`name`                                                               as employeeName,
+            r.id                                                                   as relationId,
+            o.order_state                                                          as orderState,
+            o.payment_method                                                       as paymentMethod,
+            r.relation_name                                                        as relationName,
+            cus.id                                                                 as customerId,
+            cus.customer_name                                                      as customerName,
+            o.note                                                                 as note,
+            o.order_total                                                          as orderTotal,
+            o.order_actual_total                                                   as orderActualTotal,
+            o.order_cost                                                           as orderCost,
+            o.order_get_sum                                                        as orderGetSum,
+            o.order_time                                                           as orderTime,
+            (o.order_actual_total - o.order_cost)                                  as profit,
+            (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount,
+            o.create_user_id                                                       as createUserId,
+            o.create_time                                                          as createTime,
+            o.modify_user_id                                                       as modifyUserId,
+            o.modify_time                                                          as modifyTime
+        FROM
+            order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation r ON r.id = o.relation_id
+                LEFT JOIN customer cus ON cus.id = r.customer_id
+                LEFT JOIN return_detail rd ON rd.order_base_id = o.id
+        WHERE
+            o.id = #{id}
+        GROUP BY
+            o.id
+    </select>
+
+    <select id="searchOrderBase" resultType="com.ike.pojo.vo.OrderBaseVo">
+        select
+        ob.* from (
+        SELECT
+        o.id as id,
+        o.employee_id as employeeId,
+        o.relation_id as relationId,
+        o.payment_method as paymentMethod,
+        u.`name` as employeeName,
+        cu.id as customerId,
+        cu.customer_name as customerName,
+        s.relation_name as relationName,
+        o.note as note,
+        o.order_total as orderTotal,
+        o.order_actual_total as orderActualTotal,
+        o.order_cost as orderCost,
+        o.order_get_sum as orderGetSum,
+        o.order_time as orderTime,
+        count(o.id) as orderCount,
+        o.create_user_id as createUserId,
+        o.create_time as createTime,
+        o.modify_user_id as modifyUserId,
+        o.modify_time as modifyTime,
+        count(ps.product_id) as productCount,
+        (o.order_actual_total - o.order_cost) as profit,
+        (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount,
+        o.order_state as orderState,
+        timestampdiff(DAY, DATE_FORMAT( o.order_time,'%Y-%m-%d'), now()) AS dif_f
+        FROM
+        order_base o
+        LEFT JOIN `user` u ON u.id = o.employee_id
+        LEFT JOIN relation s ON s.id = o.relation_id
+        LEFT JOIN customer cu ON cu.id = s.customer_id
+        LEFT JOIN order_product ps ON ps.order_base_id = o.id
+        GROUP BY o.id
+        ) ob
+        left join order_product op on ob.id = op.order_base_id
+        left join product p on op.product_id = p.id
+        left join product_class pc on p.product_class_id = pc.id
+        <where>
+            <if test="searchVO.orderBaseId != null">
+                and ob.id = #{searchVO.orderBaseId}
+            </if>
+            <if test="searchVO.productCountMin != null and searchVO.productCountMax!=null">
+                and ob.productCount between #{searchVO.productCountMin} and #{searchVO.productCountMax}
+            </if>
+            <if test="searchVO.orderCountMin != null and searchVO.orderCountMax!=null">
+                and ob.orderCount between #{searchVO.orderCountMin} and #{searchVO.orderCountMax}
+            </if>
+            <if test="searchVO.orderTotalMin != null and searchVO.orderTotalMax!=null">
+                and ob.orderTotal between #{searchVO.orderTotalMin} and #{searchVO.orderTotalMax}
+            </if>
+            <if test="searchVO.orderActualTotalMin != null and searchVO.orderActualTotalMax != null">
+                and ob.orderActualTotal between #{searchVO.orderActualTotalMin} and #{searchVO.orderActualTotalMax}
+            </if>
+            <if test="searchVO.orderCostMin!=null and searchVO.orderCostMax!=null">
+                and ob.orderCost between #{searchVO.orderCostMin} and #{searchVO.orderCostMax}
+            </if>
+            <if test="searchVO.orderGetSumMin!=null and searchVO.orderGetSumMax!=null">
+                and ob.orderGetSum between #{searchVO.orderGetSumMin} and #{searchVO.orderGetSumMax}
+            </if>
+            <if test="searchVO.profitMin!=null and searchVO.profitMax!=null">
+                and ob.profit between #{searchVO.profitMin} and #{searchVO.profitMax}
+            </if>
+            <if test="searchVO.beginCreateTime!=null and searchVO.endCreateTime!=null">
+                and ob.orderTime between #{searchVO.beginCreateTime} and #{searchVO.endCreateTime}
+            </if>
+            <if test="searchVO.relationId!=null">
+                and ob.relationId = #{searchVO.relationId}
+            </if>
+            <if test="searchVO.relationName!=null">
+                and ob.relationName like '%${searchVO.relationName}%'
+            </if>
+            <if test="searchVO.customerId!=null">
+                and ob.customerId = #{searchVO.customerId}
+            </if>
+            <if test="searchVO.customerName!=null">
+                and ob.customerName like '%${searchVO.customerName}%'
+            </if>
+            <if test="searchVO.employeeId!=null">
+                and ob.employeeId = #{searchVO.employeeId}
+            </if>
+            <if test="searchVO.productName!=null">
+                and p.product_name like '%${searchVO.productName}%'
+            </if>
+            <if test="searchVO.className != null">
+                and pc.class_name like '%${searchVO.className}%'
+            </if>
+            <if test="searchVO.orderState != null">
+                and o.order_state = #{searchVO.orderState}
+            </if>
+            <if test="searchVO.preMouth != null">
+                and orderTime between concat(date_format(LAST_DAY(now() - interval 1 month),'%Y-%m-'),'01') and
+                LAST_DAY(now() - interval 1 month)
+            </if>
+            <if test="searchVO.isMouth != null">
+                and orderTime between concat(date_format(LAST_DAY(now()),'%Y-%m-'),'01') and last_day(now())
+            </if>
+        </where>
+        group by op.order_base_id
+        having 1 = 1
+        <if test="searchVO.isToday != null">
+            and dif_f = 0
+        </if>
+        <if test="searchVO.yesterday != null">
+            and dif_f = 1
+        </if>
+        <if test="searchVO.sortName != null and searchVO.sortType != null">
+            ORDER BY ${searchVO.sortName} ${searchVO.sortType}
+        </if>
+    </select>
+
+
+    <select id="searchOrderBaseByTime" parameterType="com.ike.pojo.vo.OrderBaseStatisitcVO"
+            resultType="com.ike.pojo.vo.OrderBaseVo">
+        <choose>
+
+            <when test="OrderBaseStatisitcVO.year != null and OrderBaseStatisitcVO.month == null">
+                select ob.* from (
+                SELECT
+                o.id as id,
+                o.employee_id as employeeId,
+                o.relation_id as relationId,,
+                o.order_state as orderState,
+                u.`name` AS employeeName,
+                cu.customer_name AS relationName,
+                o.note as note,
+                o.order_total as orderTotal,
+                o.order_actual_total as orderActualTotal,
+                o.order_cost as orderCost,
+                o.order_get_sum as orderGetSum,
+                o.order_time as orderTime,
+                o.order_state as orderState,
+                o.payment_method as paymentMethod,
+                o.create_user_id as createUserId,
+                o.create_time as createTime,
+                o.modify_user_id as modifyUserId,
+                o.modify_time as modifyTime,
+                (o.order_actual_total - o.order_cost) AS profit,
+                (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount
+                FROM
+                order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation s ON s.id = o.relation_id
+                LEFT JOIN customer cu ON cu.id = s.customer_id
+                GROUP BY o.id
+                ) ob
+                where DATE_FORMAT(orderTime,'%Y') = '${OrderBaseStatisitcVO.year}'
+                <if test="OrderBaseStatisitcVO.employeeId!=null">
+                    and employeeId = #{OrderBaseStatisitcVO.employeeId}
+                </if>
+                <if test="OrderBaseStatisitcVO.relationId!=null ">
+                    and relationId = #{OrderBaseStatisitcVO.relationId}
+                </if>
+                and orderState = #{OrderBaseStatisitcVO.orderState}
+            </when>
+
+            <when test="OrderBaseStatisitcVO.year != null and OrderBaseStatisitcVO.month != null and OrderBaseStatisitcVO.day==null">
+                select ob.* from (
+                SELECT
+                o.id as id,
+                o.employee_id as employeeId,
+                o.relation_id as relationId,
+                u.`name` AS employeeName,
+                cu.customer_name AS relationName,
+                o.note as note,
+                o.order_total as orderTotal,
+                o.order_actual_total as orderActualTotal,
+                o.order_cost as orderCost,
+                o.order_get_sum as orderGetSum,
+                o.order_time as orderTime,
+                o.order_state as orderState,
+                o.payment_method as paymentMethod,
+                o.create_user_id as createUserId,
+                o.create_time as createTime,
+                o.modify_user_id as modifyUserId,
+                o.modify_time as modifyTime,
+                (o.order_actual_total - o.order_cost) AS profit,
+                (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount
+                FROM
+                order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation s ON s.id = o.relation_id
+                LEFT JOIN customer cu ON cu.id = s.customer_id
+                GROUP BY o.id
+                ) ob
+                where DATE_FORMAT(orderTime,'%Y-%m') = '${OrderBaseStatisitcVO.year}-${OrderBaseStatisitcVO.month}'
+                <if test="OrderBaseStatisitcVO.employeeId!=null ">
+                    and employeeId = #{OrderBaseStatisitcVO.employeeId}
+                </if>
+                <if test="OrderBaseStatisitcVO.relationId!=null ">
+                    and relationId = #{OrderBaseStatisitcVO.relationId}
+                </if>
+                and orderState = #{OrderBaseStatisitcVO.orderState}
+            </when>
+
+            <when test="OrderBaseStatisitcVO.year != null and OrderBaseStatisitcVO.month != null and OrderBaseStatisitcVO.day!=null">
+                select ob.* from (
+                SELECT
+                o.id as id,
+                o.employee_id as employeeId,
+                o.relation_id as relationId,,
+                u.`name` AS employeeName,
+                cu.customer_name AS relationName,
+                o.note as note,
+                o.order_total as orderTotal,
+                o.order_actual_total as orderActualTotal,
+                o.order_cost as orderCost,
+                o.order_get_sum as orderGetSum,
+                o.order_time as orderTime,
+                o.order_state as orderState,
+                o.payment_method as paymentMethod,
+                o.create_user_id as createUserId,
+                o.create_time as createTime,
+                o.modify_user_id as modifyUserId,
+                o.modify_time as modifyTime,
+                (o.order_actual_total - o.order_cost) AS profit,
+                (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount
+                FROM
+                order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation s ON s.id = o.relation_id
+                LEFT JOIN customer cu ON cu.id = s.customer_id
+                GROUP BY o.id
+                ) ob
+                where DATE_FORMAT(orderTime,'%Y-%m-%d') =
+                '${OrderBaseStatisitcVO.year}-${OrderBaseStatisitcVO.month}-${OrderBaseStatisitcVO.day}'
+                <if test="OrderBaseStatisitcVO.employeeId!=null ">
+                    and employeeId = #{OrderBaseStatisitcVO.employeeId}
+                </if>
+                <if test="OrderBaseStatisitcVO.relationId!=null ">
+                    and relationId = #{OrderBaseStatisitcVO.relationId}
+                </if>
+                and orderState = #{OrderBaseStatisitcVO.orderState}
+            </when>
+            <otherwise>
+                select ob.* from (
+                SELECT
+                o.id as id,
+                o.employee_id as employeeId,
+                o.relation_id as relationId,
+                u.`name` AS employeeName,
+                cu.customer_name AS relationName,
+                o.note as note,
+                o.order_total as orderTotal,
+                o.order_actual_total as orderActualTotal,
+                o.order_cost as orderCost,
+                o.order_get_sum as orderGetSum,
+                o.order_time as orderTime,
+                o.order_state as orderState,
+                o.payment_method as paymentMethod,
+                o.create_user_id as createUserId,
+                o.create_time as createTime,
+                o.modify_user_id as modifyUserId,
+                o.modify_time as modifyTime,
+                (o.order_actual_total - o.order_cost) AS profit,
+                (SELECT COUNT(id) FROM return_detail rd WHERE rd.order_base_id = o.id) AS returnDetailCount
+                FROM
+                order_base o
+                LEFT JOIN `user` u ON u.id = o.employee_id
+                LEFT JOIN relation s ON s.id = o.relation_id
+                LEFT JOIN customer cu ON cu.id = s.customer_id
+                GROUP BY o.id
+                ) ob
+                where
+                orderState = #{OrderBaseStatisitcVO.orderState}
+                <if test="OrderBaseStatisitcVO.employeeId !=null ">
+                    and employeeId = #{OrderBaseStatisitcVO.employeeId}
+                </if>
+                <if test="OrderBaseStatisitcVO.relationId!=null ">
+                    and relationId = #{OrderBaseStatisitcVO.relationId}
+                </if>
+                ORDER BY DATE_FORMAT(orderTime,'%Y') ${OrderBaseStatisitcVO.sortType}
+            </otherwise>
+
+        </choose>
+    </select>
+
+    <insert id="insertList" parameterType="java.util.List">
+        insert into order_base (
+        employee_id,
+        relation_id, note,
+        order_total,
+        order_actual_total,
+        order_cost,
+        order_get_sum,
+        order_time,
+        payment_method,
+        order_state,
+        create_user_id,
+        create_time,
+        modify_user_id,
+        modify_time
+        )
+        values
+        <foreach collection="orderBaseList" item="orderBase" index="index" separator=",">
+            (
+            #{orderBase.employeeId,jdbcType=BIGINT},
+            #{orderBase.relationId,jdbcType=BIGINT},
+            #{orderBase.note,jdbcType=VARCHAR},
+            #{orderBase.orderTotal,jdbcType=DOUBLE},
+            -- #{orderBase.returnPlanId,jdbcType=BIGINT},
+            #{orderBase.orderActualTotal,jdbcType=DOUBLE},
+            #{orderBase.orderCost,jdbcType=DOUBLE},
+            #{orderBase.orderGetSum,jdbcType=DOUBLE},
+            #{orderBase.orderTime,jdbcType=TIMESTAMP},
+            #{orderBase.paymentMethod,jdbcType=VARCHAR},
+            #{orderBase.orderState,jdbcType=TINYINT},
+            #{orderBase.createUserId,jdbcType=BIGINT},
+            #{orderBase.createTime,jdbcType=TIMESTAMP},
+            #{orderBase.modifyUserId,jdbcType=BIGINT},
+            #{orderBase.modifyTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <select id="orderBaseExport" resultType="com.ike.pojo.vo.OrderExportVo">
+        SELECT
+            op.id                 AS orderBaseId,
+            c.customer_name       AS customerName,
+            p.product_name        AS productName,
+            p.cost                AS cost,
+            p.sale_price          AS salePrice,
+            op.order_count        AS orderCount,
+            op.total_price        AS totalPrice,
+            ob.note               AS note,
+            ob.order_total        AS orderTotal,
+            ob.order_actual_total AS orderActualTotal,
+            ob.order_cost         AS orderCost,
+            ob.order_time         AS orderTime,
+            ob.payment_method     AS paymentMethod,
+            ob.order_state        AS orderState,
+            (
+                ob.order_actual_total - order_cost
+                )                 AS profit,
+            ob.create_time        AS createTime,
+            u1.`name`             AS createUserName,
+            u.`name`              AS relationName,
+            ob.order_get_sum,
+            (
+                SELECT
+                    COUNT(id)
+                FROM
+                    return_detail rd1
+                WHERE
+                    rd1.order_base_id = orderBaseId
+            )                        ratio,
+            (
+                SELECT
+                    rf.refund_amount
+                FROM
+                    refund rf
+                        LEFT JOIN order_base ob ON ob.id = rf.order_base_id
+                WHERE
+                    ob.id = orderBaseId
+            )                     AS refundAmount,
+            (
+                SELECT
+                    (
+                        ob.order_actual_total - SUM(rd.amount)
+                        )
+                FROM
+                    order_base ob
+                        LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                WHERE
+                    ob.id = orderBaseId
+            )                     AS debt,
+            (
+                SELECT
+                    MAX(rd.pay_time)
+                FROM
+                    order_base ob
+                        LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                WHERE
+                    ob.id = orderBaseId
+            )                     AS maxTime,
+            (
+                SELECT
+                    rd.amount
+                FROM
+                    order_base ob
+                        LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                WHERE
+                    ob.id = orderBaseId
+                  AND rd.pay_time = (
+                    SELECT
+                        MAX(rd.pay_time)
+                    FROM
+                        order_base ob
+                            LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                    WHERE
+                        ob.id = orderBaseId
+                )
+            )                     AS lastAmount,
+            d.department_name     AS departmentName,
+            c.customer_address    AS customerAddress
+        FROM
+            order_product op
+                LEFT JOIN order_base ob ON op.order_base_id = ob.id
+                LEFT JOIN relation r ON r.id = ob.relation_id
+                LEFT JOIN customer c ON r.customer_id = c.id
+                LEFT JOIN product p ON p.id = op.product_id
+                LEFT JOIN `user` u ON u.id = ob.employee_id
+                LEFT JOIN department d ON u.department_Id = d.id
+                LEFT JOIN `user` u1 ON ob.create_user_id = u1.id
+        GROUP BY
+            op.id
+    </select>
+
+    <!--获取订单id，金额，已回款金额，分期数，已回款次数-->
+    <select id="selectOrderBaseInfo" resultType="com.ike.pojo.vo.OrderBaseVo">
+        SELECT
+            ob.id                                                                                 AS id,
+            ob.order_total                                                                        AS order_total,
+            IFNULL(ob.order_get_sum, 0)                                                           AS order_get_sum,
+            --             IFNULL((SELECT COUNT(rpd.id) FROM return_plan_detail rpd WHERE ob.return_plan_id = rpd.return_plan_id),
+            --                    0)                                                                             AS returnPlanCount,
+            IFNULL((SELECT COUNT(rd.id) FROM return_detail rd WHERE rd.order_base_id = ob.id), 0) AS returnDetailCount
+        FROM
+            order_base ob
+    </select>
+
+    <!--批量更新订单状态-->
+    <update id="updateOrderStateList" parameterType="java.util.Map">
+        <foreach collection="stateMap.entrySet()" item="value" index="key" separator=";">
+            update order_base
+            set order_state = #{value}
+            where id = ${key}
+        </foreach>
+    </update>
+
+    <!--批量更新订单状态-->
+    <update id="updateOrderGetSumList" parameterType="java.util.Map">
+        <foreach collection="getSumMap.entrySet()" item="value" index="key" separator=";">
+            update order_base
+            set order_get_sum = #{value}
+            where id = ${key}
+        </foreach>
+    </update>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.RefundExportExtMapper">
+    <!--  <resultMap id="BaseResultMap" type="com.ike.pojo.vo.RefundExportVo" >-->
+    <!--    <id column="id" property="id" jdbcType="BIGINT" />-->
+    <!--    <result column="product_class_id" property="productClassId" jdbcType="BIGINT" />-->
+    <!--    <result column="sale_unit_id" property="saleUnitId" jdbcType="BIGINT" />-->
+    <!--    <result column="on_sale" property="onSale" jdbcType="TINYINT" />-->
+    <!--    <result column="product_name" property="productName" jdbcType="VARCHAR" />-->
+    <!--    <result column="product_type" property="productType" jdbcType="VARCHAR" />-->
+    <!--    <result column="sale_price" property="salePrice" jdbcType="DOUBLE" />-->
+    <!--    <result column="cost" property="cost" jdbcType="DOUBLE" />-->
+    <!--    <result column="ttm" property="ttm" jdbcType="TIMESTAMP" />-->
+    <!--    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />-->
+    <!--    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />-->
+    <!--    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />-->
+    <!--    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />-->
+    <!--  </resultMap>-->
+
+    <select id="selectAllToExport" resultType="com.ike.pojo.vo.RefundExportVo">
+		SELECT
+			r.id AS refundId,
+			c.customer_name AS customerName,
+			r.order_base_id AS orderBaseId,
+			(
+				SELECT
+					SUM(rd.amount)
+				FROM
+					return_detail rd
+				WHERE
+					rd.order_base_id = ob.id
+			) AS returnMoney,
+			r.refund_date AS refundDate,
+			r.refund_amount AS refundAmount,
+			r.refund_method AS refundMethod,
+			r.remark AS remark,
+			u.`name` AS userName,
+			r.create_time AS createTime,
+			s.`name` AS employeeName,
+			d.department_name AS departmentName
+		FROM
+			refund r
+		LEFT JOIN order_base ob ON ob.id = r.order_base_id
+		LEFT JOIN customer c ON c.employee_id = ob.employee_id
+		LEFT JOIN `user` u ON u.id = r.create_user_id
+		LEFT JOIN `user` s ON s.id = ob.employee_id
+		LEFT JOIN department d ON s.department_Id = d.id
+		GROUP BY r.id
+	</select>
+
+</mapper>

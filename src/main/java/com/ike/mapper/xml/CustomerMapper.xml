@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.CustomerMapper" >
+  <resultMap id="BaseResultMap" type="com.ike.pojo.Customer" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="customer_name" property="customerName" jdbcType="VARCHAR" />
+    <result column="employee_id" property="employeeId" jdbcType="BIGINT" />
+    <result column="customer_stage_id" property="customerStageId" jdbcType="BIGINT" />
+    <result column="customer_level_id" property="customerLevelId" jdbcType="BIGINT" />
+    <result column="customer_state" property="customerState" jdbcType="VARCHAR" />
+    <result column="customer_origin_id" property="customerOriginId" jdbcType="BIGINT" />
+    <result column="customer_introduce" property="customerIntroduce" jdbcType="VARCHAR" />
+    <result column="customer_address" property="customerAddress" jdbcType="VARCHAR" />
+    <result column="create_user_id" property="createUserId" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, customer_name, employee_id, customer_stage_id, customer_level_id, customer_state, 
+    customer_origin_id, customer_introduce, customer_address, create_user_id, create_time, 
+    modify_user_id, modify_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.ike.pojo.CustomerExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from customer
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from customer
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.ike.pojo.CustomerExample" >
+    delete from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.ike.pojo.Customer" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into customer (customer_name, employee_id, customer_stage_id, 
+      customer_level_id, customer_state, customer_origin_id, 
+      customer_introduce, customer_address, create_user_id, 
+      create_time, modify_user_id, modify_time
+      )
+    values (#{customerName,jdbcType=VARCHAR}, #{employeeId,jdbcType=BIGINT}, #{customerStageId,jdbcType=BIGINT}, 
+      #{customerLevelId,jdbcType=BIGINT}, #{customerState,jdbcType=VARCHAR}, #{customerOriginId,jdbcType=BIGINT}, 
+      #{customerIntroduce,jdbcType=VARCHAR}, #{customerAddress,jdbcType=VARCHAR}, #{createUserId,jdbcType=BIGINT}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{modifyUserId,jdbcType=BIGINT}, #{modifyTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.ike.pojo.Customer" useGeneratedKeys="true" keyProperty="id">
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into customer
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="customerName != null" >
+        customer_name,
+      </if>
+      <if test="employeeId != null" >
+        employee_id,
+      </if>
+      <if test="customerStageId != null" >
+        customer_stage_id,
+      </if>
+      <if test="customerLevelId != null" >
+        customer_level_id,
+      </if>
+      <if test="customerState != null" >
+        customer_state,
+      </if>
+      <if test="customerOriginId != null" >
+        customer_origin_id,
+      </if>
+      <if test="customerIntroduce != null" >
+        customer_introduce,
+      </if>
+      <if test="customerAddress != null" >
+        customer_address,
+      </if>
+      <if test="createUserId != null" >
+        create_user_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="customerName != null" >
+        #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="employeeId != null" >
+        #{employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="customerStageId != null" >
+        #{customerStageId,jdbcType=BIGINT},
+      </if>
+      <if test="customerLevelId != null" >
+        #{customerLevelId,jdbcType=BIGINT},
+      </if>
+      <if test="customerState != null" >
+        #{customerState,jdbcType=VARCHAR},
+      </if>
+      <if test="customerOriginId != null" >
+        #{customerOriginId,jdbcType=BIGINT},
+      </if>
+      <if test="customerIntroduce != null" >
+        #{customerIntroduce,jdbcType=VARCHAR},
+      </if>
+      <if test="customerAddress != null" >
+        #{customerAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null" >
+        #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.ike.pojo.CustomerExample" resultType="java.lang.Integer" >
+    select count(*) from customer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update customer
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerName != null" >
+        customer_name = #{record.customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.employeeId != null" >
+        employee_id = #{record.employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerStageId != null" >
+        customer_stage_id = #{record.customerStageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerLevelId != null" >
+        customer_level_id = #{record.customerLevelId,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerState != null" >
+        customer_state = #{record.customerState,jdbcType=VARCHAR},
+      </if>
+      <if test="record.customerOriginId != null" >
+        customer_origin_id = #{record.customerOriginId,jdbcType=BIGINT},
+      </if>
+      <if test="record.customerIntroduce != null" >
+        customer_introduce = #{record.customerIntroduce,jdbcType=VARCHAR},
+      </if>
+      <if test="record.customerAddress != null" >
+        customer_address = #{record.customerAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createUserId != null" >
+        create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.modifyUserId != null" >
+        modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update customer
+    set id = #{record.id,jdbcType=BIGINT},
+      customer_name = #{record.customerName,jdbcType=VARCHAR},
+      employee_id = #{record.employeeId,jdbcType=BIGINT},
+      customer_stage_id = #{record.customerStageId,jdbcType=BIGINT},
+      customer_level_id = #{record.customerLevelId,jdbcType=BIGINT},
+      customer_state = #{record.customerState,jdbcType=VARCHAR},
+      customer_origin_id = #{record.customerOriginId,jdbcType=BIGINT},
+      customer_introduce = #{record.customerIntroduce,jdbcType=VARCHAR},
+      customer_address = #{record.customerAddress,jdbcType=VARCHAR},
+      create_user_id = #{record.createUserId,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{record.modifyUserId,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ike.pojo.Customer" >
+    update customer
+    <set >
+      <if test="customerName != null" >
+        customer_name = #{customerName,jdbcType=VARCHAR},
+      </if>
+      <if test="employeeId != null" >
+        employee_id = #{employeeId,jdbcType=BIGINT},
+      </if>
+      <if test="customerStageId != null" >
+        customer_stage_id = #{customerStageId,jdbcType=BIGINT},
+      </if>
+      <if test="customerLevelId != null" >
+        customer_level_id = #{customerLevelId,jdbcType=BIGINT},
+      </if>
+      <if test="customerState != null" >
+        customer_state = #{customerState,jdbcType=VARCHAR},
+      </if>
+      <if test="customerOriginId != null" >
+        customer_origin_id = #{customerOriginId,jdbcType=BIGINT},
+      </if>
+      <if test="customerIntroduce != null" >
+        customer_introduce = #{customerIntroduce,jdbcType=VARCHAR},
+      </if>
+      <if test="customerAddress != null" >
+        customer_address = #{customerAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserId != null" >
+        create_user_id = #{createUserId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUserId != null" >
+        modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ike.pojo.Customer" >
+    update customer
+    set customer_name = #{customerName,jdbcType=VARCHAR},
+      employee_id = #{employeeId,jdbcType=BIGINT},
+      customer_stage_id = #{customerStageId,jdbcType=BIGINT},
+      customer_level_id = #{customerLevelId,jdbcType=BIGINT},
+      customer_state = #{customerState,jdbcType=VARCHAR},
+      customer_origin_id = #{customerOriginId,jdbcType=BIGINT},
+      customer_introduce = #{customerIntroduce,jdbcType=VARCHAR},
+      customer_address = #{customerAddress,jdbcType=VARCHAR},
+      create_user_id = #{createUserId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      modify_user_id = #{modifyUserId,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+</mapper>

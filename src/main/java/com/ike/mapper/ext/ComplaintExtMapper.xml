@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.ComplaintExtMapper" >
+
+    <select id="selByCustomerId" resultType="java.lang.Long">
+        select c.id
+        from complaint c
+                 inner join relation r on r.customer_id = #{customerId}
+    </select>
+
+
+    <select id="advanceSearch" resultType="com.ike.pojo.vo.ComplaintVo">
+        select com.*, ch.handle_result handleStatus, cus.customer_name customerName,
+               rel.relation_name relationName, charger.username chargerName,
+               creator.username creatorName, modifier.username modifierName
+        from complaint com
+                 inner join relation rel on rel.id = com.relation_id
+                 inner join customer cus on cus.id = rel.customer_id
+                 inner join user charger on charger.id = com.charge_id
+                 inner join user creator on creator.id = com.create_user_id
+                 inner join user modifier on modifier.id = com.modify_user_id
+                 left join complaint_handle ch on ch.complaint_id = com.id
+
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="complaintSearchVo.complaintType != null">
+                and com.complaint_type =#{complaintSearchVo.complaintType}
+            </if>
+            <if test="complaintSearchVo.complaintMethod != null">
+                and com.complaint_method =#{complaintSearchVo.complaintMethod}
+            </if>
+            <if test="complaintSearchVo.urgencyLevel != null">
+                and com.urgency_level =#{complaintSearchVo.urgencyLevel}
+            </if>
+            <if test="complaintSearchVo.relationName != null">
+                and rel.relation_name =#{complaintSearchVo.relationName}
+            </if>
+            <if test="complaintSearchVo.chargerName != null">
+                and charger.username =#{complaintSearchVo.chargerName}
+            </if>
+            <if test="complaintSearchVo.startTime != null and complaintSearchVo.endTime != null">
+                and com.complaint_time between #{complaintSearchVo.startTime} and #{complaintSearchVo.endTime}
+            </if>
+        </trim>
+        order by complaint_time desc
+    </select>
+
+    <select id="selAll" resultType="com.ike.pojo.vo.ComplaintVo">
+        select com.*,
+               ch.handle_result  handleStatus,
+               cus.customer_name customerName,
+               cus.id            customerId,
+               rel.relation_name relationName,
+               charger.username  chargerName,
+               creator.username  creatorName,
+               modifier.username modifierName
+        from complaint com
+                 inner join relation rel on rel.id = com.relation_id
+                 inner join customer cus on cus.id = rel.customer_id
+                 inner join user charger on charger.id = com.charge_id
+                 inner join user creator on creator.id = com.create_user_id
+                 inner join user modifier on modifier.id = com.modify_user_id
+                 left join complaint_handle ch on ch.complaint_id = com.id
+        order by complaint_time desc
+    </select>
+
+    <select id="selUnHandle" resultType="com.ike.pojo.vo.ComplaintVo">
+        select com.*, ch.handle_result handleStatus, cus.customer_name customerName,
+               rel.relation_name relationName, charger.username chargerName,
+               creator.username creatorName, modifier.username modifierName
+        from complaint com
+                 inner join relation rel on rel.id = com.relation_id
+                 inner join customer cus on cus.id = rel.customer_id
+                 inner join user charger on charger.id = com.charge_id
+                 inner join user creator on creator.id = com.create_user_id
+                 inner join user modifier on modifier.id = com.modify_user_id
+                 left join complaint_handle ch on ch.complaint_id = com.id
+        where ch.handle_result is null
+        order by complaint_theme desc
+    </select>
+
+    <select id="selIsHandled" resultType="com.ike.pojo.vo.ComplaintVo">
+        select com.*, ch.handle_result handleStatus, cus.customer_name customerName,
+               rel.relation_name relationName, charger.username chargerName,
+               creator.username creatorName, modifier.username modifierName
+        from complaint com
+                 inner join relation rel on rel.id = com.relation_id
+                 inner join customer cus on cus.id = rel.customer_id
+                 inner join user charger on charger.id = com.charge_id
+                 inner join user creator on creator.id = com.create_user_id
+                 inner join user modifier on modifier.id = com.modify_user_id
+                 left join complaint_handle ch on ch.complaint_id = com.id
+        where ch.handle_result is not null
+        order by complaint_theme desc
+    </select>
+
+    <select id="selHandleByCurUser" resultType="com.ike.pojo.vo.ComplaintVo" parameterType="long">
+        select com.*, cus.customer_name customerName,
+               rel.relation_name relationName,
+               charger.username  chargerName,
+               creator.username  creatorName,
+               modifier.username modifierName
+        from complaint com
+                 inner join relation rel on rel.id = com.relation_id
+                 inner join customer cus on cus.id = rel.customer_id
+                 inner join user charger on charger.id = com.charge_id
+                 inner join user creator on creator.id = com.create_user_id
+                 inner join user modifier on modifier.id = com.modify_user_id
+        where com.charge_id = #{curUserId}
+        order by complaint_time desc
+    </select>
+
+</mapper>

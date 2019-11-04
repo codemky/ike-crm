@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.FollowExtMapper">
+
+    <resultMap id="FollowList" type="com.ike.pojo.vo.FollowVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="employee_id" property="employeeId" jdbcType="BIGINT"/>
+        <result column="customer_id" property="customerId" jdbcType="BIGINT"/>
+        <result column="relation_id" property="relationId" jdbcType="BIGINT"/>
+        <result column="follow_way" property="followWay" jdbcType="VARCHAR"/>
+        <result column="follow_time" property="followTime" jdbcType="TIMESTAMP"/>
+        <result column="follow_detail" property="followDetail" jdbcType="VARCHAR"/>
+        <result column="follow_result" property="followResult" jdbcType="VARCHAR"/>
+        <result column="customer_stage_id" property="customerStageId" jdbcType="BIGINT"/>
+        <result column="customer_status" property="customerStatus" jdbcType="VARCHAR"/>
+        <result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="c_name" property="customerName"/>
+        <result column="r_name" property="relationName"/>
+        <result column="u_name" property="employeeName"/>
+        <result column="create_name" property="createName"/>
+        <result column="modify_name" property="modifyName"/>
+
+    </resultMap>
+
+    <resultMap id="selectCustomerDetail" type="com.ike.pojo.vo.CustomerDetailVo">
+        <result column="fcount" property="followCount"/>
+        <result column="ftime" property="lastFollowTime"/>
+    </resultMap>
+
+    <select id="selectByCriteria" resultMap="FollowList">
+        select f.*,
+        c.customer_name c_name,
+        r.relation_name r_name,
+        r.relation_phone r_phone,
+        u.name u_name,
+        timestampdiff(day , f.follow_time , now()) as dif_f,
+        u1.name create_name,
+        u2.name modify_name
+
+        from follow f
+        inner join relation r on f.relation_id = r.id
+        inner join customer c on c.id = r.customer_id
+        inner join user u on f.employee_id = u.id
+        left join user u1 on u1.id = f.create_user_id
+        left join user u2 on u2.id = f.modify_user_id
+        where 1 = 1
+        <if test="criteria.Id != null">
+            and f.id = #{criteria.id}
+        </if>
+        <if test="criteria.employeeIds != null">
+            and f.employee_id in
+            <foreach item="item" index="index" collection="criteria.employeeIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="criteria.customerId != null ">
+            and c.id = #{criteria.customerId}
+        </if>
+        <if test="criteria.relationId != null ">
+            and r.id = #{criteria.relationId}
+        </if>
+        <if test="criteria.followWay != null">
+            and f.follow_way like #{criteria.followWay}
+        </if>
+        <if test="criteria.customerStatus != null">
+            and f.customer_status like #{criteria.customerStatus}
+        </if>
+        <if test="criteria.customerStageId != null">
+            and f.customer_stage_id1 like #{criteria.customerStageId}
+        </if>
+        <if test="criteria.minTime != null and criteria.maxTime != null">
+            and f.follow_time between #{criteria.minTime} and #{criteria.maxTime}
+        </if>
+        <if test="criteria.isWeek != null">
+            and f.follow_time between date_sub(curdate(),INTERVAL WEEKDAY(curdate()) + 1 DAY) and
+            date_sub(curdate(),INTERVAL WEEKDAY(curdate()) -5 DAY)
+        </if>
+        <if test="criteria.isMouth != null">
+            and f.follow_time between concat(date_format(LAST_DAY(now()),'%Y-%m-'),'01') and last_day(now())
+        </if>
+        <if test="criteria.customerName != null">
+            and c.customer_name like #{criteria.customerName}
+        </if>
+        <if test="criteria.relationName != null">
+            and r.relation_name like #{criteria.relationName}
+        </if>
+        <if test="criteria.relationPhone != null">
+            and r.relation_phone like #{criteria.relationPhone}
+        </if>
+        having 1 = 1
+        <if test="criteria.isToday != null">
+            and dif_f = 0
+        </if>
+        <if test="criteria.yesterday != null">
+            and dif_f = 1
+        </if>
+
+
+        order by ${criteria.sortName} ${criteria.sortType}
+    </select>
+
+    <select id="selectDetailById" resultMap="FollowList">
+
+    </select>
+
+    <select id="selectCustomerDetail" resultMap="selectCustomerDetail">
+        select count(distinct f.id) fcount, max(f.follow_time) ftime
+
+        from customer c
+         left join relation r on c.id = r.customer_id
+         left join follow f on r.id = f.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+</mapper>

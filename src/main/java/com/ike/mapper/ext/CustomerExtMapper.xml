@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.CustomerExtMapper">
+
+    <resultMap id="ListVoByEid" type="com.ike.pojo.vo.CustomerListVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="customer_name" property="customerName" jdbcType="VARCHAR"/>
+        <result column="employee_id" property="employeeId"/>
+        <result column="customer_stage_id" property="customerStageId" jdbcType="BIGINT"/>
+        <result column="customer_level_id" property="customerLevelId" jdbcType="BIGINT"/>
+        <result column="customer_state" property="customerState" jdbcType="VARCHAR"/>
+        <result column="customer_origin_id" property="customerOriginId" jdbcType="BIGINT"/>
+        <result column="customer_introduce" property="customerIntroduce" jdbcType="VARCHAR"/>
+        <result column="customer_address" property="customerAddress" jdbcType="VARCHAR"/>
+        <result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="create_name" property="createName"/>
+        <result column="modify_name" property="modifyName"/>
+        <result column="stage_name" property="stageName"/>
+        <result column="level_name" property="levelName"/>
+        <result column="origin_name" property="originName"/>
+        <result column="re_id" property="relationId"/>
+        <result column="re_name" property="relationName"/>
+        <result column="rephone" property="relationPhone"/>
+        <result column="renumber" property="landLinePhone"/>
+        <result column="uid" property="employeeId"/>
+        <result column="uname" property="employeeName"/>
+        <result column="ftime" property="lastFollowTime"/>
+
+    </resultMap>
+
+    <resultMap id="selectIds" type="com.ike.pojo.vo.CustomerVo">
+        <id column="c_id" property="id" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <resultMap id="selectForUpdate" type="com.ike.pojo.vo.CustomerVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="customer_name" property="customerName" jdbcType="VARCHAR"/>
+        <result column="employee_id" property="employeeId" jdbcType="BIGINT"/>
+        <result column="customer_stage_id" property="customerStageId" jdbcType="BIGINT"/>
+        <result column="customer_level_id" property="customerLevelId" jdbcType="BIGINT"/>
+        <result column="customer_state" property="customerState" jdbcType="VARCHAR"/>
+        <result column="customer_origin_id" property="customerOriginId" jdbcType="BIGINT"/>
+        <result column="customer_introduce" property="customerIntroduce" jdbcType="VARCHAR"/>
+        <result column="customer_address" property="customerAddress" jdbcType="VARCHAR"/>
+        <result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="stage_name" property="stageName"/>
+        <result column="level_name" property="levelName"/>
+        <result column="origin_name" property="originName"/>
+        <result column="uname" property="employeeName"/>
+    </resultMap>
+
+    <resultMap id="selectDetail" type="com.ike.pojo.vo.CustomerDetailVo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="customer_name" property="customerName" jdbcType="VARCHAR"/>
+        <result column="employee_id" property="employeeId" jdbcType="BIGINT"/>
+        <result column="customer_stage_id" property="customerStageId" jdbcType="BIGINT"/>
+        <result column="customer_level_id" property="customerLevelId" jdbcType="BIGINT"/>
+        <result column="customer_state" property="customerState" jdbcType="VARCHAR"/>
+        <result column="customer_origin_id" property="customerOriginId" jdbcType="BIGINT"/>
+        <result column="customer_introduce" property="customerIntroduce" jdbcType="VARCHAR"/>
+        <result column="customer_address" property="customerAddress" jdbcType="VARCHAR"/>
+        <result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="modify_user_id" property="modifyUserId" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP"/>
+        <result column="stage_name" property="stageName"/>
+        <result column="level_name" property="levelName"/>
+        <result column="origin_name" property="originName"/>
+        <result column="uname" property="employeeName"/>
+        <result column="create_name" property="createName"/>
+        <result column="modify_name" property="modifyName"/>
+
+    </resultMap>
+
+    <resultMap id="OrderInfo" type="com.ike.pojo.vo.CustomerDetailVo">
+        <result column="ob_count" property="orderCount"/>
+        <result column="cp_count" property="productCount"/>
+        <result column="ob_sum" property="orderSum"/>
+        <result column="ob_cost" property="costSum"/>
+
+    </resultMap>
+
+    <resultMap id="ReturnInfo" type="com.ike.pojo.vo.CustomerDetailVo">
+        <result column="last_time" property="lastReturnTime"/>
+        <result column="rd_sum" property="returnSum"/>
+        <result column="rd_count" property="returnCount"/>
+    </resultMap>
+
+    <resultMap id="RefundInfo" type="com.ike.pojo.vo.CustomerDetailVo">
+        <result column="rf_sum" property="refundSum"/>
+        <result column="rf_count" property="refundCount"/>
+    </resultMap>
+
+
+    <sql id="criteria">
+        <if test="criteria.relationPhone != null ">and re.relation_phone like #{criteria.relationPhone}</if>
+        <if test="criteria.customerName != null ">and c.customer_name like #{criteria.customerName}</if>
+        <if test="criteria.customerStageId != null ">and c.customer_stage_id = #{criteria.customerStageId}</if>
+        <if test="criteria.customerLevelId != null ">and c.customer_level_id = #{criteria.customerLevelId}</if>
+        <if test="criteria.customerOriginId != null ">and c.customer_origin_id = #{criteria.customerOriginId}</if>
+        <if test="criteria.customerState != null ">and c.customer_state = #{criteria.customerState}</if>
+        <if test="criteria.customerAddress != null ">and c.customer_address like #{criteria.customerAddress}</if>
+        <if test="criteria.createMin != null and criteria.createMax == null ">and c.create_time
+            <![CDATA[<=]]> #{criteria.createMin}
+        </if>
+        <if test="criteria.createMin == null and criteria.createMax != null ">and c.create_time >
+            <![CDATA[>=]]> #{criteria.createMax}
+        </if>
+        <if test="criteria.createMin != null and criteria.createMax != null ">and c.create_time between
+            #{criteria.createMin} and #{criteria.createMax}
+        </if>
+
+
+
+    </sql>
+
+
+    <select id="selectListVoByCriteria" resultMap="ListVoByEid">
+        select c.*,
+        cs.id sid,
+        cl.id lid,
+        co.id oid,
+        cs.stage_name,
+        cl.level_name,
+        co.origin_name,
+        re.id re_id,
+        re.relation_name re_name,
+        re.relation_phone rephone,
+        re.landline_number renumber,
+        u.id uid,
+        u.name uname,
+        max(f.follow_time) ftime,
+        timestampdiff(day , c.create_time, now()) ctime,
+        u1.name create_name,
+        u2.name modify_name
+
+        from (customer c,
+        customer_stage cs,
+        customer_level cl,
+        customer_origin co,
+        relation re,
+        user u)
+        left join follow f on f.customer_id = c.id
+        left join user u1 on c.create_user_id = u1.id
+        left join user u2 on c.modify_user_id = u2.id
+
+        where c.customer_stage_id = cs.id
+        and c.customer_level_id = cl.id
+        and c.customer_origin_id = co.id
+        and re.customer_id = c.id
+        and re.relation_primary = 0
+        and c.employee_id = u.id
+        <include refid="criteria"/>
+        <if test="criteria.flag != null">and 1 = 0</if>
+
+        <if test="criteria.flag == null and criteria.ids != null">
+            and c.id in
+            <foreach item="item" index="index" collection="criteria.ids" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="criteria.employeeIds != null">
+            and c.employee_id in
+            <foreach item="item" index="index" collection="criteria.employeeIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+
+        group by c.id
+        having 1 = 1
+        <if test="criteria.isToday != null ">and ctime = 0</if>
+        <if test="criteria.isFollowed != null ">and ftime is null</if>
+
+        <if test="criteria.sortName != null and criteria.sortType != null">
+            order by ${criteria.sortName} ${criteria.sortType}
+        </if>
+    </select>
+
+    <select id="selectIdsByOrderBase" resultMap="selectIds">
+        select c.id c_id , r.id, ob.id , ifnull(sum(ob.order_actual_total),0.0) as su_ob, count( ob.id) co_ob
+        from customer c
+        left join relation r on c.id = r.customer_id
+        left join order_base ob on r.id = ob.relation_id
+
+        group by c.id
+        having 1 = 1
+        <if test="orderMinSum != null and orderMaxSum != null ">and su_ob between #{orderMinSum} and #{orderMaxSum}</if>
+        <if test="orderMinCount != null and orderMaxCount != null">and co_ob between #{orderMinCount} and
+            #{orderMaxCount}
+        </if>
+        order by c.id
+    </select>
+
+    <select id="selectIdsByComplain" resultMap="selectIds">
+        select c.id c_id, count(c2.id) c2_count
+        from customer c
+        left join relation r on c.id = r.customer_id
+        left join complaint c2 on c.id = c2.relation_id
+
+        group by c.id
+        having 1 = 1
+        <if test="complainMinCount != null and complainMaxCount != null ">and c2_count between #{complainMinCount} and
+            #{complainMaxCount}
+        </if>
+        order by c.id
+    </select>
+
+    <select id="selectIdsByFollow" resultMap="selectIds">
+        select c.id c_id,
+        f.id f_id,
+        timestampdiff(day, max(f.follow_time), now()) as diff_f_t,
+        count(f.id) as f_count
+
+        from (customer c)
+        left join follow f on f.customer_id = c.id
+
+        group by c.id
+        having 1 = 1
+        <if test="differFollow != null">
+            and diff_f_t <![CDATA[>=]]> #{differFollow}
+        </if>
+        <if test="isFollowed != null">
+            and diff_f_t is null
+        </if>
+        <if test="followMinCount != null and followMaxCount != null">
+            and f_count between #{followMinCount} and #{followMaxCount}
+        </if>
+        order by c.id
+    </select>
+
+    <select id="selectForUpdate" resultMap="selectForUpdate">
+        select c.*,
+       cs.id sid,
+       cl.id lid,
+       co.id oid,
+       cs.stage_name,
+       cl.level_name,
+       co.origin_name,
+       u.name  uname,
+
+        from (customer c,
+              customer_stage cs,
+              customer_level cl,
+              customer_origin co,user u)
+
+        where c.customer_stage_id = cs.id
+          and c.customer_level_id = cl.id
+          and c.customer_origin_id = co.id
+          and c.employee_id = u.id
+          and c.id = #{cid}
+
+    </select>
+
+    <select id="selectDetail" resultMap="selectDetail">
+        select c.*,
+           cs.stage_name,
+           cl.level_name,
+           co.origin_name,
+           u.name  uname,
+           u1.name create_name,
+           u2.name modify_name,
+           r.relation_name
+        from (customer c, customer_stage cs, customer_level cl, customer_origin co, user u,relation r)
+                 left join user u1 on c.create_user_id = u1.id
+                 left join user u2 on c.modify_user_id = u2.id
+        where c.customer_stage_id = cs.id
+          and c.customer_level_id = cl.id
+          and c.customer_origin_id = co.id
+          and c.employee_id = u.id
+          and c.id = r.customer_id
+          and r.relation_primary = 0
+          and c.id = #{id}
+    </select>
+
+    <select id="selectOrderInfo" resultMap="OrderInfo">
+        select
+       count(distinct ob.id) ob_count,
+       ifnull(sum(op.order_count), 0) op_count,
+       ifnull(sum(ob.order_actual_total), 0.00) ob_sum,
+        ifnull(sum(ob.order_cost), 0.00) ob_cost
+        from customer c
+         left join relation r on c.id = r.customer_id
+         left join order_base ob on r.id = ob.relation_id
+         left join order_product op on ob.id = op.order_base_id
+    where c.id = #{cid}
+    group by c.id
+</select>
+
+    <select id="selectReturnInfo" resultMap="ReturnInfo">
+        select c.id,
+           r.id                         rid,
+           rd.id,
+           ifnull(sum(rd.amount), 0.00) rd_sum,
+           max(rd.pay_time)             last_time,
+           count(rd.id)                 rd_count
+
+        from customer c
+                 left join relation r on c.id = r.customer_id
+                 left join return_detail rd on r.id = rd.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+    <select id="selectRefundInfo" resultMap="RefundInfo">
+        select c.id,
+           r.id                         rid,
+           ifnull(sum(r2.refund_amount),0.00) rf_sum,
+           count(r2.id)  rf_count
+
+        from customer c
+            left join relation r on c.id = r.customer_id
+            left join refund r2 on r.id = r2.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+    <select id="countComplain" resultType="java.lang.Long">
+        select count(c2.id) cp_count
+        from customer c
+                 left join relation r on c.id = r.customer_id
+        left join complaint c2 on c.id = c2.relation_id
+        where c.id = #{cid}
+        group by c.id
+    </select>
+
+    <select id="selectIdAndNameAll" resultType="com.ike.pojo.vo.SelectVo">
+        select id,customer_name name from customer
+    </select>
+
+    <insert id="importExcel" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into customer (customer_name, employee_id, customer_stage_id,
+        customer_level_id, customer_state, customer_origin_id,
+        customer_introduce, customer_address, create_user_id,
+        create_time ) values
+        <foreach collection="list" item="item"
+                 index="index" separator=",">
+            ( #{item.customerName}, #{item.employeeId}, #{item.customerStageId},
+            #{item.customerLevelId}, #{item.customerState}, #{item.customerOriginId},
+            #{item.customerIntroduce}, #{item.customerAddress}, #{item.createUserId},
+            #{item.createTime} )
+        </foreach>
+
+
+    </insert>
+
+</mapper>

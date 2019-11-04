@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.OrderProductExtMapper">
+    <sql id="product">
+        SELECT
+            o.id             AS id,
+            o.order_base_id  AS orderBaseId,
+            o.product_id     AS productId,
+            o.order_count    AS orderCount,
+            o.total_price    AS totalPrice,
+            o.actual_price   AS actualPrice,
+            p.product_name   AS productName,
+            pc.class_name    AS className,
+            o.create_user_id AS createUserId,
+            o.create_time    AS createTime,
+            o.modify_user_id AS modifyUserId,
+            o.modify_time    AS modifyTime,
+            p.cost           AS saleCost,
+            p.sale_price     AS salePrice,
+            (
+                SELECT
+                    GROUP_CONCAT(
+                            CONCAT(
+                                    pr.product_name,
+                                    ifnull(pc.class_name,'')
+                                )
+                        )
+                FROM
+                    product pr
+                WHERE
+                    pr.id = p.id
+            )                AS productMessages
+        FROM
+            order_product o
+                LEFT JOIN product p ON p.id = o.product_id
+                LEFT JOIN product_class pc ON pc.id = p.product_class_id
+    </sql>
+    <select id="selectOrderProductList" resultType="com.ike.pojo.vo.OrderProductVo">
+        <include refid="product"/>
+        WHERE
+            o.order_base_id = #{id}
+    </select>
+    <select id="selectAllByOrderBaseId" resultType="com.ike.pojo.vo.OrderProductVo">
+        <include refid="product"/>
+        WHERE
+        o.order_base_id = #{order_base_id}
+    </select>
+
+    <update id="updateList" parameterType="java.util.List">
+        <foreach collection="PrderProductVo" item="OrderProduct" index="index" separator=" ">
+            update order_product
+            set order_base_id = #{OrderProduct.orderBaseId,jdbcType=BIGINT},
+            product_id = #{OrderProduct.productId,jdbcType=BIGINT},
+            order_count = #{OrderProduct.orderCount,jdbcType=INTEGER},
+            total_price = #{OrderProduct.totalPrice,jdbcType=DOUBLE},
+            actual_price = #{OrderProduct.actualPrice,jdbcType=DOUBLE},
+            create_user_id = #{OrderProduct.createUserId,jdbcType=BIGINT},
+            create_time = #{OrderProduct.createTime,jdbcType=TIMESTAMP},
+            modify_user_id = #{OrderProduct.modifyUserId,jdbcType=BIGINT},
+            modify_time = #{OrderProduct.modifyTime,jdbcType=TIMESTAMP}
+            where id = #{id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <!--根据订单id批量删除产品-->
+    <delete id="deleteListByOrderBaseId" parameterType="java.lang.Long">
+        delete from order_product
+        where order_base_id = #{order_base_id,jdbcType=BIGINT}
+    </delete>
+
+    <!--批量插入订单产品-->
+    <insert id="insertList" parameterType="java.util.List">
+      insert into order_product (order_base_id, product_id, order_count,
+      total_price, actual_price, create_user_id,
+      create_time, modify_user_id, modify_time
+      )
+      values
+        <foreach collection="PrderProductVo" item="orderProduct" index="index" separator=",">
+            (#{orderProduct.orderBaseId,jdbcType=BIGINT}, #{orderProduct.productId,jdbcType=BIGINT}, #{orderProduct.orderCount,jdbcType=INTEGER},
+            #{orderProduct.totalPrice,jdbcType=DOUBLE}, #{orderProduct.actualPrice,jdbcType=DOUBLE}, #{orderProduct.createUserId,jdbcType=BIGINT},
+            #{orderProduct.createTime,jdbcType=TIMESTAMP}, #{orderProduct.modifyUserId,jdbcType=BIGINT}, #{orderProduct.modifyTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+</mapper>

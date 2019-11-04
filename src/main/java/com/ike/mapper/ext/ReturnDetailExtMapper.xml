@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ike.mapper.ext.ReturnDetailExtMapper">
+    <sql id="detail">
+        SELECT
+            rd.id                AS id,
+            rd.relation_id       AS relationId,
+            rd.employee_id       AS employeeId,
+            cus.id               AS customerId,
+            cus.customer_name    AS customerName,
+            rel.relation_name    AS relationName,
+            e.name               AS employeeName,
+            rd.order_base_id     AS orderBaseId,
+            rd.pay_time          AS payTime,
+            IFNULL(rd.amount, 0) AS amount,
+            rd.payment_type      AS paymentType,
+            rd.remark            AS remark,
+            rd.create_user_id    AS createUserId,
+            rd.create_time       AS createTime,
+            rd.modify_user_id                               AS modifyUserId,
+            rd.modify_time                                  AS modifyTime,
+            CONCAT(
+                YEAR (ob.order_time),
+                '-',
+                MONTH (ob.order_time),
+                ' ',
+                (
+                    SELECT
+                        GROUP_CONCAT(
+                            CONCAT(
+                                p.product_name,
+                                ':',
+                                op.total_price
+                            )
+                        )
+                    FROM
+                        order_product op
+                    LEFT JOIN product p ON p.id = op.product_id
+                    WHERE
+                        op.order_base_id = orderBaseId
+                )
+            ) AS orderbaseMessage,
+            timestampdiff(DAY, DATE_FORMAT( rd.pay_time,'%Y-%m-%d'), now()) AS dif_f
+        FROM
+            return_detail rd
+                LEFT JOIN `user` e ON e.id = rd.employee_id
+                LEFT JOIN relation rel ON rel.id = rd.relation_id
+                LEFT JOIN customer cus ON cus.id = rel.customer_id
+                LEFT JOIN order_base ob on ob.id = rd.order_base_id
+    </sql>
+    <select id="listReturnDetailSearch" resultType="com.ike.pojo.vo.ReturnDetailVo">
+        <include refid="detail"/>
+        <where>
+            <if test="searchVO.isThisMonth!=null">
+                and date_format(pay_time,'%y-%m')=date_format(curdate(),'%y-%m')
+            </if>
+            <if test="searchVO.isLastMonth!=null">
+                and date_format(pay_time,'%y-%m')=date_format(date_sub(curdate(),interval 1 month ),'%y-%m')
+            </if>
+            <if test="searchVO.isToday!=null">
+                and to_days(now()) = to_days(pay_time)
+            </if>
+            <if test="searchVO.isYesterday!=null">
+                and to_days(now()) -to_days(pay_time)=1
+            </if>
+            <if test="searchVO.id != null and searchVO.id != ''">
+                rd.id = #{searchVO.id}
+            </if>
+            <if test="searchVO.customerId != null and searchVO.customerId != ''">
+                and cus.id = #{searchVO.customerId}
+            </if>
+            <if test="searchVO.createUserId != null and searchVO.createUserId != ''">
+                and rd.create_user_id = #{searchVO.createUserId}
+            </if>
+            <if test="searchVO.employeeId != null and searchVO.employeeId != ''">
+                and rd.employee_id = #{searchVO.employeeId}
+            </if>
+            <if test="searchVO.createTimeMax != null and searchVO.createTimeMin != null">
+                and rd.create_time between #{searchVO.createTimeMin} and #{searchVO.createTimeMax}
+            </if>
+            <if test="searchVO.orderBaseId != null and searchVO.orderBaseId != ''">
+                and rd.order_base_id = #{searchVO.orderBaseId}
+            </if>
+            <if test="searchVO.payTimeMax != null and searchVO.payTimeMin != null">
+                and rd.pay_time between #{searchVO.payTimeMin} and #{searchVO.payTimeMax}
+            </if>
+            <if test="searchVO.amountMax != null and searchVO.amountMin != null">
+                and rd.amount between #{searchVO.amountMin} and #{searchVO.amountMax}
+            </if>
+            <if test="searchVO.paymentType != null and searchVO.paymentType != null">
+                and rd.payment_type = #{searchVO.paymentType}
+            </if>
+            <if test="searchVO.customerName != null">
+                and cus.customer_name LIKE '%${searchVO.customerName}%'
+            </if>
+            <if test="searchVO.relationName != null">
+                and rel.relation_name LIKE '%${searchVO.relationName}%'
+            </if>
+        </where>
+        group by
+        rd.id
+        order by
+        rd.pay_time ${searchVO.sortType}
+    </select>
+    <select id="searchReturnDetailByTime" parameterType="com.ike.pojo.vo.ReturnDetailStatisitcVo"
+            resultType="com.ike.pojo.vo.ReturnDetailVo">
+                <include refid="detail"/>
+                <where>
+                    <if test="searchVO.preMouth != null">
+                        and rd.pay_time between concat(date_format(LAST_DAY(now() - interval 1 month),'%Y-%m-'),'01')  and
+                        LAST_DAY(now() - interval 1 month)
+                    </if>
+                    <if test="searchVO.isMouth != null">
+                        and rd.pay_time between concat(date_format(LAST_DAY(now()),'%Y-%m-'),'01') and last_day(now())
+                    </if>
+                    <if test="searchVO.employeeId!=null">
+                        and rd.employee_id = #{searchVO.employeeId}
+                    </if>
+                    <if test="searchVO.customerName != null">
+                        and cus.customer_name LIKE '%${searchVO.customerName}%'
+                    </if>
+                    <if test="searchVO.relationName != null">
+                        and rel.relation_name LIKE '%${searchVO.relationName}%'
+                    </if>
+                </where>
+                    having 1 = 1
+                    <if test="searchVO.isToday != null">
+                        and dif_f = 0
+                    </if>
+                    <if test="searchVO.yesterday != null">
+                        and dif_f = 1
+                    </if>
+                ORDER BY rd.pay_time ${searchVO.sortType}
+
+
+
+    </select>
+
+    <insert id="insertList" parameterType="java.util.List">
+        insert into return_detail (
+        relation_id, employee_id, order_base_id,
+        pay_time, amount, payment_type,
+        remark, create_user_id, create_time,
+        modify_user_id, modify_time)
+        values
+        <foreach collection="returnDetailList" item="returnDetail" index="index" separator=",">
+            (#{returnDetail.relationId,jdbcType=BIGINT}, #{returnDetail.employeeId,jdbcType=BIGINT},
+            #{returnDetail.orderBaseId,jdbcType=BIGINT},
+            #{returnDetail.payTime,jdbcType=TIMESTAMP}, #{returnDetail.amount,jdbcType=DOUBLE},
+            #{returnDetail.paymentType,jdbcType=VARCHAR},
+            #{returnDetail.remark,jdbcType=VARCHAR}, #{returnDetail.createUserId,jdbcType=BIGINT},
+            #{returnDetail.createTime,jdbcType=TIMESTAMP},
+            #{returnDetail.modifyUserId,jdbcType=BIGINT}, #{returnDetail.modifyTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+    <select id="selectAllList" resultType="com.ike.pojo.vo.ReturnDetailVo">
+        <include refid="detail"/>
+    </select>
+    <select id="selectByOrderBaseId" resultType="com.ike.pojo.vo.ReturnDetailVo">
+        <include refid="detail"/>
+        where rd.order_base_id = #{orderBaseId}
+    </select>
+    <select id="selectByRelationId" resultType="com.ike.pojo.vo.ReturnDetailVo">
+        <include refid="detail"/>
+        where rd.relation_id = #{relationId}
+    </select>
+
+    <select id="exportReturnDetail" resultType="com.ike.pojo.vo.ReturnDetailExportVo">
+        SELECT
+            rd.id             AS returnDetail,
+            c.customer_name      userName,
+            rd.order_base_id     orderBaseId,
+            rd.pay_time       AS payTime,
+            (
+                SELECT
+                    COUNT(*)
+                FROM
+                    return_detail rd
+                WHERE
+                    rd.order_base_id = orderBaseId
+                  AND rd.pay_time &lt;= payTime
+            )                 AS sumCount,
+            (
+                SELECT
+                    SUM(rd1.amount)
+                FROM
+                    return_detail rd1
+                WHERE
+                        rd1.pay_time
+                        &lt; payTime
+                  AND order_base_id = orderBaseId
+            )                    sumPay,
+            rd.payment_type   as paymentType,
+            rd.remark,
+            ob.order_get_sum  as orderGetSum,
+            (
+                SELECT
+                    MAX(rd.pay_time)
+                FROM
+                    order_base ob
+                        LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                WHERE
+                    ob.id = orderBaseId
+            )                 AS lastPayTime,
+            (
+                SELECT
+                    rd.amount
+                FROM
+                    order_base ob
+                        LEFT JOIN return_detail rd ON rd.order_base_id = ob.id
+                WHERE
+                    ob.id = orderBaseId
+                  AND rd.pay_time = lastPayTime
+            )                 AS lastAmount,
+            u.`name`          AS createUserName,
+            rd.create_time       createTime,
+            u1.`name`         AS employeeName,
+            d.department_name as departmentName
+        FROM
+            return_detail rd
+                LEFT JOIN order_base ob ON rd.order_base_id = ob.id
+                LEFT JOIN relation r ON rd.relation_id = r.id
+                LEFT JOIN customer c on r.customer_id = c.id
+                LEFT JOIN `user` u ON u.id = rd.create_user_id
+                LEFT JOIN `user` u1 ON u1.id = ob.employee_id
+                LEFT JOIN department d ON u1.department_id = d.id
+        ORDER BY orderBaseId,returnDetail asc
+    </select>
+
+    <delete id="deleteListByOrderBaseId" parameterType="java.lang.Long">
+        delete from return_detail
+        where order_base_id = #{order_base_id,jdbcType=BIGINT}
+    </delete>
+
+</mapper>
